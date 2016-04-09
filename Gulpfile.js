@@ -2,9 +2,7 @@ var gulp = require('gulp'),
 	jshint = require('gulp-jshint'),
 	istanbul = require('gulp-istanbul'),
 	mocha = require('gulp-mocha'),
-	clean = require('gulp-clean'),
-	watch = require('gulp-watch'),
-	batch = require('gulp-batch');
+	clean = require('gulp-clean');
 
 gulp.task('clean', function () {
 	return gulp.src(['./build/**/*.js'])
@@ -28,24 +26,31 @@ gulp.task('coverage', ['build'], function () {
 		.pipe(istanbul.hookRequire());
 });
 
-gulp.task('test', ['coverage'], function () {
+gulp.task('test-coverage', ['coverage'], function() {
+	return gulp.src('./test/**/*.js')
+			.pipe(mocha())
+			.pipe(istanbul.writeReports())
+			.pipe(istanbul.enforceThresholds({thresholds: {global: 30}}));
+});
+
+gulp.task('test', function () {
 	return gulp.src('./test/**/*.js')
 		.pipe(mocha())
-		.pipe(istanbul.writeReports())
-		.pipe(istanbul.enforceThresholds({thresholds: {global: 30}}));
+		.on('error', function (error) {
+			console.log(error);
+			this.emit('end');
+		});
 });
 
-gulp.task('dev', ['build'], function() {
-	watch(['./src/**/*.js', './test/**/*.js'], batch(function(events, done) {
-		gulp.start('test', done);
-	}));
-
-	//return gulp.src(['./src/**/*.js', './test/**/*.js'])
-	//		.pipe()
-	//		.on('end', cb);
+gulp.task('dev', ['test'], function () {
+	return gulp.watch(['./src/**/*.js', './test/**/*.js'], ['test']);
 });
 
-gulp.task('dist', ['test'], function () {
+gulp.task('dev-coverage', ['test-coverage'], function () {
+	return gulp.watch(['./src/**/*.js', './test/**/*.js'], ['test-coverage']);
+});
+
+gulp.task('dist', ['test-coverage'], function () {
 
 });
 

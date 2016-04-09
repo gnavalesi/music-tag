@@ -6,106 +6,187 @@ var should = require('should');
 
 describe('music-tag', function () {
 	describe('read', function () {
-		it('should return a valid object when reading a valid file', function (done) {
-			musicTag.read(testsData.test01.path, function (err, result) {
-				if (err) {
-					throw err;
-				}
+		describe('file', function() {
+			it('should return a valid object when reading a valid file', function (done) {
+				musicTag.read(testsData.test01.path).then(function (result) {
+					result.path.should.match(testsData.test01.regex);
+					result.data.should.deepEqual(testsData.test01.data);
+					done();
+				}).fail(function (err) {
+					err.should.be.equals(null);
+					done();
+				}).catch(function (err) {
+					done(err);
+				});
+			});
 
-				result.path.should.match(testsData.test01.regex);
-				result.data.should.deepEqual(testsData.test01.data);
+			it('should return an empty result when reading no id3 tagged file', function (done) {
+				musicTag.read(testsData.bad_file.path).then(function (result) {
+					result.path.should.match(testsData.bad_file.regex);
+					result.data.should.deepEqual(testsData.bad_file.data);
+					done();
+				}).fail(function (err) {
+					done(err);
+				}).catch(function (err) {
+					done(err);
+				});
+			});
 
-				done();
+			it('should return error when reading a non existing file', function (done) {
+				musicTag.read(testsData.all.path + '/non_existent.mp3').then(function (result) {
+					done(new Error('Value returned: ' + result));
+				}).fail(function (err) {
+					done();
+				}).catch(function (err) {
+					done(err);
+				});
+			});
+
+			it('should return error when reading an invalid file', function (done) {
+				musicTag.read(testsData.all.path + '/another_file02.ext').then(function (result) {
+					done(new Error('Value returned: ' + result));
+				}).fail(function () {
+					done();
+				}).catch(function (err) {
+					done(err);
+				});
 			});
 		});
 
-		it('should return error when reading a non existing file', function(done) {
-			musicTag.read(testsData.all + '/non_existent.mp3', function(err) {
-				assert(err !== null);
-				done();
-			});
-		});
+		describe('folder', function() {
+			it('should return the right number of valid objects when reading a valid folder', function (done) {
+				musicTag.read(testsData.all.path).then(function (withoutSlashResult) {
+					withoutSlashResult.should.be.Array();
+					withoutSlashResult.length.should.be.equal(7);
 
-		it('should return error when reading an invalid file', function(done) {
-			musicTag.read(testsData.all + '/another_file02.ext', function(err) {
-				assert(err !== null);
-				done();
-			});
-		});
+					withoutSlashResult[0].path.should.match(testsData.bad_file.regex);
+					withoutSlashResult[0].data.should.deepEqual(testsData.bad_file.data);
 
-		it('should return error when reading no id3 tagged file', function(done) {
-			musicTag.read(testsData.all + '/bad_file.mp3', function(err) {
-				assert(err !== null);
-				done();
-			});
-		});
-
-		it('should return the right number of valid objects when reading a valid folder', function (done) {
-			musicTag.read(testsData.directory01.path, function (err, withoutSlashResult) {
-				if (err) {
-					throw err;
-				}
-
-				withoutSlashResult.should.be.Array();
-				withoutSlashResult.length.should.be.equal(2);
-
-				for(var i = 0; i < 2; i ++) {
-					var testData = testsData['test0' + (i + 3)];
-					withoutSlashResult[i].path.should.match(testData.regex);
-					withoutSlashResult[i].data.should.deepEqual(testData.data);
-				}
-
-				musicTag.read(testsData.directory01.path + '/', function (err, withSlashResult) {
-					if (err) {
-						throw err;
+					for (var i = 0; i < 6; i++) {
+						var testData = testsData['test0' + (((i + 2) % 6) + 1)];
+						withoutSlashResult[i + 1].path.should.match(testData.regex);
+						withoutSlashResult[i + 1].data.should.deepEqual(testData.data);
 					}
 
-					withSlashResult.should.deepEqual(withoutSlashResult);
+					musicTag.read(testsData.all.path + '/').then(function (withSlashResult) {
+						withSlashResult.should.deepEqual(withoutSlashResult);
+						done();
+					}).fail(function (err) {
+						done(err);
+					});
+				}).fail(function (err) {
+					done(err);
+				}).catch(function (err) {
+					done(err);
+				});
+			});
 
+			it('should return the right number of valid objects when reading non recursive a valid folder', function (done) {
+				musicTag.read({
+					path: testsData.all.path,
+					recursive: false
+				}).then(function (withoutSlashResult) {
+					withoutSlashResult.should.be.Array();
+					withoutSlashResult.length.should.be.equal(3);
+
+					withoutSlashResult[0].path.should.match(testsData.bad_file.regex);
+					withoutSlashResult[0].data.should.deepEqual(testsData.bad_file.data);
+
+					for (var i = 1; i < 3; i++) {
+						var testData = testsData['test0' + i];
+						withoutSlashResult[i].path.should.match(testData.regex);
+						withoutSlashResult[i].data.should.deepEqual(testData.data);
+					}
+
+					done();
+				}).fail(function (err) {
+					done(err);
+				}).catch(function (err) {
+					done(err);
+				});
+			});
+
+			it('should return error when reading a non existing folder', function (done) {
+				musicTag.read(testsData.all.path + '/non_existent').then(function () {
+					assert(false);
+					done();
+				}).fail(function (err) {
+					err.should.be.Error();
 					done();
 				});
 			});
 		});
 
-		it('should return the right number of valid objects when reading non recursive a valid folder', function (done) {
-			musicTag.read(testsData.directory01.path, function (err, withoutSlashResult) {
-				if (err) {
-					throw err;
-				}
+		it('should return error when an invalid path argument is passed', function (done) {
+			musicTag.read(0).then(function () {
+				assert(false);
+				done();
+			}).fail(function (err) {
+				err.should.be.Error();
+				done();
+			});
+		});
+	});
 
-				withoutSlashResult.should.be.Array();
-				withoutSlashResult.length.should.be.equal(2);
-
-				for(var i = 0; i < 2; i ++) {
-					var testData = testsData['test0' + (i + 3)];
-					withoutSlashResult[i].path.should.match(testData.regex);
-					withoutSlashResult[i].data.should.deepEqual(testData.data);
-				}
-
-				musicTag.read(testsData.directory01.path + '/', function (err, withSlashResult) {
-					if (err) {
-						throw err;
-					}
-
-					withSlashResult.should.deepEqual(withoutSlashResult);
-
+	describe('write', function() {
+		describe('file', function() {
+			it('should save and return correctly the tags when writing to a non id3 tagged file'
+					/*, function(done) {
+				musicTag.write(testsData.bad_file.path, testsData.test01.data).then(function(result) {
+					result.path.should.match(testsData.bad_file.regex);
+					result.data.should.deepEqual(testsData.test01.data);
 					done();
+				}).fail(function(err) {
+					done(err);
+				}).catch(function (err) {
+					done(err);
 				});
-			});
+			}*/
+			);
+
+			it('should save and return correctly the tags when writing to a valid file'
+			//		, function(done) {
+			//	done();
+			//}
+			);
+
+			it('should return error when writing to a non existing file'
+			//		, function(done) {
+			//	done();
+			//}
+			);
+
+			it('should return error when writing to an invalid file'
+			//		, function(done) {
+			//	done();
+			//}
+			);
 		});
 
-		it('should return error when reading a non existing folder', function(done) {
-			musicTag.read(testsData.all + '/non_existent', function(err) {
-				assert(err !== null);
-				done();
-			});
+		describe('folder', function() {
+			it('should save and return correctly the tags when writing to a valid folder'
+			//		, function(done) {
+			//	done();
+			//}
+			);
+
+			it('should save and return correctly the tags when writing non recursive to a valid folder'
+			//		, function(done) {
+			//	done();
+			//}
+			);
+
+			it('should return error when when writing to a non existing folder'
+			//		, function(done) {
+			//	done();
+			//}
+			);
 		});
 
-		it('should return error when an invalid path argument is passed', function(done) {
-			musicTag.read(0, function(err) {
-				assert(err !== null);
-				done();
-			});
-		});
+		it('should return error when when invalid path argument is passed'
+		//		, function(done) {
+		//	done();
+		//}
+		);
 	});
 });

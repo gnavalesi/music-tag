@@ -22,7 +22,11 @@
 
 		async.waterfall(data.actions, function (err, data) {
 			if (!_.isNull(err)) {
-				return callback('Unable to process file: ' + err);
+				if(err === "NO_ID3") {
+					return callback(err);
+				} else {
+					return callback('Unable to process file: ' + err);
+				}
 			}
 
 			return callback(null, data.tag_content);
@@ -40,7 +44,6 @@
 			// read the buffer from a file
 			data.path = params;
 			data.actions = [
-				fileExists,
 				openFile,
 				readHeaderBuffer,
 				loadHeader,
@@ -53,28 +56,13 @@
 		return data;
 	};
 
-	var fileExists = function (d, cb) {
-		if (!_.isString(d.path)) {
-			return cb("File does not exist");
-		}
-
-		fs.exists(d.path, function (exists) {
-
-			if (!exists) {
-				return cb('File does not exist');
-			}
-
-			return cb(null, d);
-		});
-	};
-
 
 // loads the details about the tag size etc
 	var loadHeader = function (data, callback) {
 		var header = data.buffer.slice(0, 10);
 
 		if (header.slice(0, 3).toString() !== 'ID3') {
-			return callback("No ID3 tags");
+			return callback("NO_ID3");
 		}
 		data.tag_size = id3Size(header.slice(6, 10));
 

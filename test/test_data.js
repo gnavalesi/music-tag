@@ -74,6 +74,11 @@
 				version: '2.3.0'
 			}
 		},
+		bad_file: {
+			path: 'test/resources/bad_file.mp3',
+			regex: /test\/resources\/bad_file\.mp3$/,
+			data: {}
+		},
 		all: {
 			path: 'test/resources'
 		},
