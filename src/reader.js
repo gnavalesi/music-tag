@@ -1,3 +1,5 @@
+/*jslint sub: true*/
+
 (function () {
 	var id3 = require('./id3');
 	var fs = require('fs');
