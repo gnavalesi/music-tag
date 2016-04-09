@@ -14,6 +14,8 @@
   },
   "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-istanbul": "^0.10.4",
     "gulp-jshint": "^2.0.0",
     "gulp-mocha": "^2.2.0",
     "istanbul": "^0.4.3",

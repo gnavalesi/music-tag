@@ -4,7 +4,7 @@
 			async = require('async'),
 			Buffer = require('buffer').Buffer;
 
-	var config = require('../config/config.json');
+	var config = require('../../config/config.json');
 
 	var generate = function (params, callback) {
 		var data = makeTags(params.tags);

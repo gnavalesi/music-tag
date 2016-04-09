@@ -1,7 +1,7 @@
 var _ = require('underscore'),
 	Buffer = require('buffer').Buffer;
 
-var config = require('../config/config.json');
+var config = require('../../config/config.json');
 
 function TagExtractor() {
 	return this;

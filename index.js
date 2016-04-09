@@ -1,5 +1,5 @@
-var reader = require('./src/reader');
-var writer = require('./src/writer');
+var reader = require('./src/lib/reader');
+var writer = require('./src/lib/writer');
 
 //reader.readFile('./resources/Aenaon/2014 - Extance/01. The First Art.mp3').then(function(data) {
 //	console.log('data', data);
