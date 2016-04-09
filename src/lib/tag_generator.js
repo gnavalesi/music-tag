@@ -1,5 +1,7 @@
 /*jslint sub: true*/
 (function() {
+	'use strict';
+
 	var _ = require('underscore'),
 			async = require('async'),
 			Buffer = require('buffer').Buffer;

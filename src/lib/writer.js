@@ -1,9 +1,9 @@
 (function () {
+	'use strict';
+
 	var id3 = require('./id3');
 	var Q = require('q');
 	var fs = require('fs');
-	var _ = require('underscore');
-	var utils = require('./utils');
 
 	function ID3Reader() {
 		return this;

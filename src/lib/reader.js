@@ -1,144 +1,117 @@
-/*jslint sub: true*/
-
 (function () {
+	'use strict';
+
 	var id3 = require('./id3');
 	var fs = require('fs');
 	var _ = require('underscore');
 	var async = require('async');
-	var glob = require('glob');
+	var q = require('q');
 
-	var read = function(path, callback) {
-		if(_.isString(path)) {
-			return readString(path, callback);
-		} else if(_.isArray(path)) {
-			return readArray(path, callback);
+	var TagReader = require('./tag_reader'),
+		TagExtractor = require('./tag_extractor');
+
+	var defaultOptions = {
+		recursive: true,
+		each: null
+	};
+
+	var read = function (path, options, callback) {
+		var ops = options;
+		if (_.isFunction(options)) {
+			callback = options;
+			ops = {};
+		}
+
+		ops = _.extend(defaultOptions, ops);
+
+		if (_.isString(path)) {
+			return readString(path, ops, callback);
 		} else {
 			return callback('Invalid path argument: ' + path);
 		}
 	};
 
-	var readString = function(path, callback) {
-		return validatePath(path, function(err, data) {
-			if(err) {
+	var readString = function (path, options, callback) {
+		return validatePath(path, function (err, data) {
+			if (err) {
 				return callback('Invalid path: ' + path + '\n\t' + err);
 			}
 
-			if(data.isDirectory) {
-				return readFolder(_.omit(data, ['isDirectory', 'isFile']), callback);
-			} else if(data.isFile) {
-				return readFile(_.omit(data, ['isDirectory', 'isFile']), callback);
-			} else {
-				return callback('Unable to recognize path: ' + path);
-			}
+			return readPath(data, options, callback);
 		});
 	};
 
-	var readArray = function(array, callback) {
-		async.map(array, readString, function(err, results) {
-			if(err) {
-				return callback(err);
-			}
-
-			return callback(null, _.reduce(results, function(acc, result) {
-				return _.extend(acc, result);
-			}, {}));
-		});
+	var readPath = function(data, options, callback) {
+		if (data.isDirectory) {
+			return readFolder(data.path, options, callback);
+		} else if (data.isFile) {
+			return readFile(data.path, options, callback);
+		} else {
+			return callback('Unable to recognize path: ' + data.path);
+		}
 	};
 
-	var readFile = function (path, callback) {
-		return id3.read(path.fullPath, function(err, tags) {
-			if(err) {
-				return callback(err);
-			}
-
-			return callback(null, _.object([path.fullPath], [tags]));
-		});
-	};
-
-	var readFolder = function (path, callback) {
-		getFiles(path.fullPath, function (err, files) {
+	var readFile = function (path, options, callback) {
+		TagReader.read(path, function (err, tag_buffer) {
 			if (err) {
-				return callback('Unable to get files from folder ' + path.fullPath + ': ' + err);
+				return callback(err);
 			}
 
-			var groups = _.groupBy(files, function(file) {
-				if(isMusicFile(file.path)) {
-					return 'music';
-				} else if(isDirectory(file.path)) {
-					return 'directory';
-				} else {
-					return 'none';
-				}
-			});
+			var tags = TagExtractor.extract(tag_buffer);
 
-			return async.parallel([_.partial(readFiles, groups['music']),
-					_.partial(readFolders, groups['directory'])], function(err, results) {
-				if(err) {
+			return callback(null, ReadResult(path, tags));
+		});
+	};
+
+	var readFolder = function (path, options, callback) {
+		getFiles(path, function (err, files) {
+			if (err) {
+				return callback('Unable to get files from folder ' + path + ': ' + err);
+			}
+
+			return async.map(_.filter(files, function (file) {
+				return isMusicFile(file) || isDirectory(file);
+			}), _.partial(readString, _, options), function (err, results) {
+				if (err) {
 					return callback(err);
 				}
 
-				return callback(null, _.reduce(_.flatten(results), function(acc, result) {
-					return _.extend(acc, result);
-				}, {}));
+				return callback(null, _.flatten(results));
 			});
 		});
 	};
 
-	var validatePath = function(path, callback) {
-		return fs.stat(path, function(err, stats) {
-			if(err) {
+	var validatePath = function (path, callback) {
+		return fs.stat(path, function (err, stats) {
+			if (err) {
 				return callback('Unable to read path ' + path + ':\n\t' + err);
 			}
 
-			return resolvePath(path, function(err, resolvedPath) {
-				if(err) {
+			return resolvePath(path, function (err, resolvedPath) {
+				if (err) {
 					return callback(err);
 				}
 
-				return callback(null, _.extend(resolvedPath, {
+				return callback(null, {
+					path: resolvedPath,
 					isDirectory: stats.isDirectory(),
 					isFile: stats.isFile()
-				}));
+				});
 			});
 		});
 	};
 
-	var resolvePath = function(path, callback) {
-		return fs.realpath(path, function(err, resolvedPath) {
-			if(err) {
+	var resolvePath = function (path, callback) {
+		return fs.realpath(path, function (err, resolvedPath) {
+			if (err) {
 				return callback('Unable to resolve real path of path ' + path + ':\n\t' + err);
 			}
 
-			return callback(null, {
-				path: path,
-				fullPath: resolvedPath
-			});
+			return callback(null, resolvedPath);
 		});
 	};
 
-	var readFiles = function (files, callback) {
-		async.map(files, readFile, function (err, results) {
-			if (err) {
-				return callback('Unable to process file:\n\t' + err);
-			}
-
-			return callback(null, _.reduce(results, function(acc, result) {
-				return _.extend(acc, result);
-			}, {}));
-		});
-	};
-
-	var readFolders = function(folders, callback) {
-		async.map(folders, readFolder, function (err, results) {
-			if (err) {
-				return callback('Unable to process file:\n\t' + err);
-			}
-
-			return callback(null, _.flatten(results));
-		});
-	};
-
-	var getFiles = function(folder, callback) {
+	var getFiles = function (folder, callback) {
 		fs.readdir(folder, function (err, files) {
 			if (err) {
 				return callback('Unable to get files from folder ' + folder + ': ' + err);
@@ -148,7 +121,7 @@
 		});
 	};
 
-	var addPath = function(path, file) {
+	var addPath = function (path, file) {
 		return normalizePath(path) + file;
 	};
 
@@ -157,18 +130,20 @@
 	};
 
 	var isMusicFile = function (filepath) {
-		if (typeof filepath !== 'string') {
-			throw new Error('filepath supplied is not a string');
-		}
-
 		var regex = /.+.(mp3|flac|wav)/i;
-
 		return filepath.toString().match(regex) !== null;
 	};
 
-	var isDirectory = function(path) {
+	var isDirectory = function (path) {
 		return path.toString().endsWith('/') || path.toString().match(/^.+\/[^\.]+$/) !== null;
 	};
+
+	function ReadResult(path, data) {
+		return {
+			path: path,
+			data: data
+		};
+	}
 
 	module.exports = {
 		read: read

@@ -1,15 +1,13 @@
 (function () {
+	'use strict';
+
 	var _ = require('underscore'),
 		fs = require('fs'),
 		async = require('async'),
 		Buffer = require('buffer').Buffer;
 
-	function TagReader() {
-		return this;
-	}
-
-	TagReader.prototype.read = function (params, callback) {
-		var data = this.buildActions(params, {
+	var read = function (params, callback) {
+		var data = buildActions(params, {
 			buffer: null,
 			path: null,
 			file_handle: null,
@@ -31,7 +29,7 @@
 		});
 	};
 
-	TagReader.prototype.buildActions = function (params, data) {
+	var buildActions = function (params, data) {
 		if (Buffer.isBuffer(params)) {
 			data.buffer = params;
 			data.actions = [
@@ -149,5 +147,7 @@
 			(buffer[3] & 0x7F);
 	};
 
-	module.exports = new TagReader();
+	module.exports = {
+		read: read
+	};
 })();

@@ -14,12 +14,15 @@
   },
   "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-batch": "^1.0.5",
     "gulp-clean": "^0.3.2",
     "gulp-istanbul": "^0.10.4",
     "gulp-jshint": "^2.0.0",
     "gulp-mocha": "^2.2.0",
+    "gulp-watch": "^4.3.5",
     "istanbul": "^0.4.3",
     "jshint": "^2.9.1",
-    "mocha": "^2.4.5"
+    "mocha": "^2.4.5",
+    "should": "^8.3.0"
   }
 }
