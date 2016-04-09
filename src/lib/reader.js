@@ -112,7 +112,7 @@
 	};
 
 	var normalizePath = function (path) {
-		return (path.toString().endsWith('/') ? path : path + '/');
+		return (('' + path).endsWith('/') ? path : path + '/');
 	};
 
 	var isMusicFile = function (filepath) {
