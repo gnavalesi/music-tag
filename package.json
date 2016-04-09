@@ -8,7 +8,15 @@
   "dependencies": {
     "async": "^2.0.0-rc.2",
     "buffer": "^4.5.1",
+    "glob": "^7.0.3",
     "q": "^1.4.1",
     "underscore": "latest"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-jshint": "^2.0.0",
+    "istanbul": "^0.4.3",
+    "jshint": "^2.9.1",
+    "mocha": "^2.4.5"
   }
 }

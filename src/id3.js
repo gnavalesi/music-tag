@@ -63,7 +63,7 @@
 				}
 
 				return cb(null, data);
-			})
+			});
 		});
 
 		async.waterfall(actions, function(err, data) {

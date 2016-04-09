@@ -102,7 +102,7 @@
 			data.file_handle = file_handle;
 
 			return callback(null, data);
-		})
+		});
 	};
 
 	var closeFile = function (data, callback) {

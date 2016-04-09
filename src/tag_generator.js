@@ -51,8 +51,8 @@ var makeTags = function (tags) {
 
 		if (!_.isUndefined(tag)) {
 			frames[tag] =
-				(tag === 'APIC' ? '\u0000\u0069\u006D\u0061\u0067\u0065\u002F\u0070\u006E\u0067\u0000\u0003\u0000' : '\u0000')
-				+ tags[it];
+				(tag === 'APIC' ? '\u0000\u0069\u006D\u0061\u0067\u0065\u002F\u0070\u006E\u0067\u0000\u0003\u0000' : '\u0000') +
+				tags[it];
 
 			data.total_size += (tag === 'APIC' ? 13 + 10 : 11) + frames[tag].length;
 		} else {
@@ -105,7 +105,7 @@ var calculateTotalTagSize = function (total_size) {
 
 	var bit_pos = 0;
 	for (var j = 4; j < 32; j++) {
-		if (bit_pos % 8 == 0) {
+		if (bit_pos % 8 === 0) {
 			formatted_size[bit_pos] = 0;
 			bit_pos++;
 		}

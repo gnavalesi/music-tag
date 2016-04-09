@@ -28,7 +28,7 @@ var getTag = function(content, pos) {
 var getTagData = function(content, tag, pos) {
 	return {
 		label: config.labels[tag.label].toLowerCase().replace(/\s/g, '_'),
-		text: content.slice(pos + 10, pos + 10 + tag.size).toString('UTF-8').replace(/^[\u0000-\u0009]+|~|�/, '')
+		text: content.slice(pos + 10, pos + 10 + tag.size).toString('UTF-8').replace(/^[\u0000-\u0009]+/, '')
 	};
 };
 

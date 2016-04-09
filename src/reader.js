@@ -3,6 +3,7 @@
 	var fs = require('fs');
 	var _ = require('underscore');
 	var async = require('async');
+	var glob = require('glob');
 
 	var read = function(path, callback) {
 		if(_.isString(path)) {
@@ -169,6 +170,6 @@
 
 	module.exports = {
 		read: read
-	}
+	};
 })();
 
