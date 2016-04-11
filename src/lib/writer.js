@@ -9,14 +9,25 @@
 	var Utils = require('./utils');
 	var reader = require('./reader');
 
+	var TagReader = require('./tag_reader');
+	var TagExtractor = require('./tag_extractor');
+	var TagWriter = require('./tag_writer');
+	var TagGenerator = require('./tag_generator');
+
 	var defaultOptions = {
 		recursive: true,
 		replace: false
 	};
 
 	var write = function(path, tags) {
-		var deferred = Q.defer();
 		var options = _.clone(defaultOptions);
+
+		if(!_.isObject(tags)) {
+			var deferred = Q.defer();
+			deferred.reject('Invalid tags argument');
+			return deferred.promise;
+		}
+
 		if (_.isString(path)) {
 			options.path = {
 				path: path
@@ -27,36 +38,31 @@
 				path: path.path
 			};
 		}
+		options.newTags = tags;
 
-		reader.read(path).then(function(result) {
-			if(_.isObject(result)) {
+		var actions = [Utils.validatePath, Utils.resolvePath, writePath];
 
-			} else if(_.isArray(result)) {
-
-			}
-		}).fail(function(err) {
-			deferred.reject(err);
-		});
-
-		return deferred.promise;
+		return _.reduce(actions, Q.when, Q(options));
 	};
 
 	var writePath = function(options) {
 		if(options.path.isDirectory) {
-			console.log('writing to folder');
 			return writeFolder(options);
 		} else if(options.path.isFile) {
-			console.log('writing to file');
-			return writeFile(options);
+			if(Utils.isMusicFile(options.path.fullPath)) {
+				return writeFile(options);
+			} else {
+				throw new Error('Unable to recognize path: ' + options.path);
+			}
 		} else {
 			throw new Error('Unable to recognize path: ' + options.path);
 		}
 	};
 
 	var writeFile = function(options) {
-		if(!options.replace) {
+		var actions = [read, generate, doWrite];
 
-		}
+		return _.reduce(actions, Q.when, Q(options));
 	};
 
 	var writeFolder = function(options) {
@@ -70,28 +76,57 @@
 		};
 	};
 
-
-
-
-
-	function ID3Reader() {
-		return this;
-	}
-
-	ID3Reader.prototype.writeFile = function (filepath, tags) {
+	var read = function(options) {
 		var deferred = Q.defer();
 
-		id3.write({
-			path: filepath,
-			tags: tags
-		}, function (err, data) {
+		TagReader.read(options.path.fullPath, function (err, tag_buffer) {
 			if (err) {
+				if (err === 'NO_ID3') {
+					options.tags = options.newTags;
+					options.original_size = 0;
+
+					deferred.resolve(options);
+				} else {
+					deferred.reject(new Error(err));
+				}
+			} else {
+				if(options.replace) {
+					options.tags = options.newTags;
+				} else {
+					options.tags = _.extend(TagExtractor.extract(tag_buffer), options.newTags);
+				}
+				options.original_size = tag_buffer.tags.length;
+
+				deferred.resolve(options);
+			}
+		});
+
+		return deferred.promise;
+	};
+
+	var generate = function(options) {
+		var deferred = Q.defer();
+
+		options.tag_buffer = TagGenerator.generate(options);
+		deferred.resolve(options);
+
+		return deferred.promise;
+	};
+
+	var doWrite = function(options) {
+		var deferred = Q.defer();
+
+		var ops = {
+			original_size: options.original_size,
+			path: options.path.fullPath,
+			tag_buffer: options.tag_buffer
+		};
+
+		TagWriter.write(ops, function(err, data) {
+			if (!_.isNull(err)) {
 				deferred.reject(err);
 			} else {
-				deferred.resolve({
-					file: filepath,
-					tags: data
-				});
+				deferred.resolve(WriteResult(options.path.fullPath, data));
 			}
 		});
 
@@ -99,7 +134,6 @@
 	};
 
 	module.exports = {
-		//new ID3Reader()
 		write: write
 	};
 })();

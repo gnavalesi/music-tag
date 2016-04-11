@@ -36,8 +36,14 @@
 		return deferred.promise;
 	};
 
+	var isMusicFile = function(path) {
+		var regex = /.+.(mp3|flac|wav)/i;
+		return path.toString().match(regex) !== null;
+	};
+
 	module.exports = {
 		validatePath: validatePath,
-		resolvePath: resolvePath
+		resolvePath: resolvePath,
+		isMusicFile: isMusicFile
 	};
 })();

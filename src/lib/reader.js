@@ -39,7 +39,7 @@
 	var readPath = function (options) {
 		if (options.path.isDirectory) {
 			return readFolder(options);
-		} else if (options.path.isFile && isMusicFile(options.path.fullPath)) {
+		} else if (options.path.isFile && Utils.isMusicFile(options.path.fullPath)) {
 			return readFile(options);
 		} else {
 			throw new Error('Unable to recognize path: ' + data.path);
@@ -53,8 +53,9 @@
 			if (err) {
 				if (err === 'NO_ID3') {
 					deferred.resolve(ReadResult(options.path.fullPath, {}));
+				} else {
+					deferred.reject(new Error(err));
 				}
-				deferred.reject(new Error(err));
 			} else {
 				var tags = TagExtractor.extract(tag_buffer);
 				deferred.resolve(ReadResult(options.path.fullPath, tags));
@@ -95,7 +96,7 @@
 	var readPaths = function (options) {
 		var promises = _.chain(options.files)
 			.filter(function (file) {
-				return isMusicFile(file) || (options.recursive && isDirectory(file));
+				return Utils.isMusicFile(file) || (options.recursive && isDirectory(file));
 			})
 			.map(function (path) {
 				var pathOptions = _.omit(options, ['files']);
@@ -113,11 +114,6 @@
 
 	var normalizePath = function (path) {
 		return (('' + path).endsWith('/') ? path : path + '/');
-	};
-
-	var isMusicFile = function (filepath) {
-		var regex = /.+.(mp3|flac|wav)/i;
-		return filepath.toString().match(regex) !== null;
 	};
 
 	var isDirectory = function (path) {

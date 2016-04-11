@@ -3,23 +3,22 @@
 	'use strict';
 
 	var _ = require('underscore'),
-			async = require('async'),
 			Buffer = require('buffer').Buffer;
 
 	var config = require('../../config/config.json');
 
-	var generate = function (params, callback) {
+	var generate = function (params) {
 		var data = makeTags(params.tags);
 		var tag_header = makeHeader(data.total_size);
 
-		return callback(null, Buffer.concat([tag_header, data.tag_content]));
+		return Buffer.concat([tag_header, data.tag_content]);
 	};
 
 	var makeHeader = function (total_size) {
 		var tag_header = new Buffer(10);
 
 		tag_header.write('ID3', 0, 3);
-		tag_header.writeUInt8('0x4', 3);
+		tag_header.writeUInt8('0x3', 3);
 		tag_header.writeUInt8('0x0', 4);
 		tag_header.writeUInt32BE(total_size, 6);
 
@@ -42,7 +41,7 @@
 				labels = _.invert(config.labels),
 				data = {
 					tag_content: null,
-					total_size: null
+					total_size: 0
 				};
 
 		_.each(_.keys(tags), function(it) {

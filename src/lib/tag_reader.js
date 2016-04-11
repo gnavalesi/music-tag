@@ -34,6 +34,7 @@
 	};
 
 	var buildActions = function (params, data) {
+		/*
 		if (Buffer.isBuffer(params)) {
 			data.buffer = params;
 			data.actions = [
@@ -41,6 +42,7 @@
 				loadTagBuffer
 			];
 		} else {
+		*/
 			// read the buffer from a file
 			data.path = params;
 			data.actions = [
@@ -51,7 +53,9 @@
 				loadTagBuffer,
 				closeFile
 			];
+		/*
 		}
+		*/
 
 		return data;
 	};
