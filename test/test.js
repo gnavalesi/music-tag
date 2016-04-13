@@ -40,7 +40,7 @@ describe('music-tag', function () {
 			it('should return error when reading a non existing file', function (done) {
 				musicTag.read(testsData.path + '/non_existent.mp3').then(function (result) {
 					done(new Error('Value returned: ' + result));
-				}).fail(function (error) {
+				}).fail(function () {
 					done();
 				}).catch(function (err) {
 					done(err);
@@ -57,15 +57,7 @@ describe('music-tag', function () {
 				});
 			});
 
-			it('should return error when reading a file with no permissions', function(done) {
-				musicTag.read(testsData.files.unreadable.path).then(function (result) {
-					done(new Error('Value returned: ' + result));
-				}).fail(function () {
-					done();
-				}).catch(function (err) {
-					done(err);
-				});
-			});
+			it('should return error when reading a file with no permissions');
 		});
 
 		describe('folder', function () {
@@ -142,6 +134,8 @@ describe('music-tag', function () {
 					done();
 				});
 			});
+
+			it('should return error when reading a folder with no permissions');
 		});
 
 		it('should return error when an invalid path argument is passed', function (done) {
@@ -214,6 +208,8 @@ describe('music-tag', function () {
 					done(err);
 				});
 			});
+
+			it('should return error when writing a file with no permissions');
 		});
 
 		describe('folder', function () {
@@ -335,6 +331,8 @@ describe('music-tag', function () {
 					done(err);
 				});
 			});
+
+			it('should return error when writing a folder with no permissions');
 		});
 
 		it('should return error when when invalid path argument is passed', function (done) {
