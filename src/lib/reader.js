@@ -1,7 +1,6 @@
 (function () {
 	'use strict';
 
-	var id3 = require('./id3');
 	var fs = require('fs');
 	var _ = require('underscore');
 	var Q = require('q');
