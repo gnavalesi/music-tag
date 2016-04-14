@@ -92,7 +92,7 @@
 				if(options.replace) {
 					options.tags = options.newTags;
 				} else {
-					options.tags = _.extend(TagExtractor.extract(tag_buffer), options.newTags);
+					options.tags = _.extend(TagExtractor.extract(tag_buffer.tags, tag_buffer.version), options.newTags);
 				}
 				options.original_size = tag_buffer.tags.length;
 

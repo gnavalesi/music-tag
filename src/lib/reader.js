@@ -56,7 +56,7 @@
 					deferred.reject(new Error(err));
 				}
 			} else {
-				var tags = TagExtractor.extract(tag_buffer);
+				var tags = TagExtractor.extract(tag_buffer.tags, tag_buffer.version);
 				deferred.resolve(ReadResult(options.path.fullPath, tags));
 			}
 		});
