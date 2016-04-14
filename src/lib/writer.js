@@ -106,7 +106,7 @@
 	var generate = function(options) {
 		var deferred = Q.defer();
 
-		options.tag_buffer = TagGenerator.generate(options);
+		options.tag_buffer = TagGenerator.generate(options.tags);
 		deferred.resolve(options);
 
 		return deferred.promise;
