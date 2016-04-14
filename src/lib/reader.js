@@ -48,16 +48,14 @@
 	var readFile = function (options) {
 		var deferred = Q.defer();
 
-		TagReader.read(options.path.fullPath, function (err, tag_buffer) {
-			if (err) {
-				if (err === 'NO_ID3') {
-					deferred.resolve(ReadResult(options.path.fullPath, {}));
-				} else {
-					deferred.reject(new Error(err));
-				}
+		TagReader.read(options.path.fullPath).then(function(tag_buffer) {
+			var tags = TagExtractor.extract(tag_buffer);
+			deferred.resolve(ReadResult(options.path.fullPath, tags));
+		}).fail(function(err) {
+			if (err === 'NO_ID3') {
+				deferred.resolve(ReadResult(options.path.fullPath, {}));
 			} else {
-				var tags = TagExtractor.extract(tag_buffer.tags, tag_buffer.version);
-				deferred.resolve(ReadResult(options.path.fullPath, tags));
+				deferred.reject(new Error(err));
 			}
 		});
 

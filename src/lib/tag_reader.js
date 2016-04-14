@@ -3,135 +3,98 @@
 
 	var _ = require('underscore'),
 		fs = require('fs'),
-		async = require('async'),
-		Buffer = require('buffer').Buffer;
+		Buffer = require('buffer').Buffer,
+		Q = require('q');
 
-	var read = function (params, callback) {
-		var data = buildActions(params, {
-			buffer: null,
-			path: null,
-			file_handle: null,
-			tag_size: null,
-			tag_content: null,
-			actions: []
-		});
+	var read = function (path) {
+		var deferred = Q.defer();
 
-		data.actions.unshift(function (callback) {
-			return callback(null, data);
-		});
+		openFile(path).then(function (fileHandle) {
+			readHeaderBuffer(fileHandle)
+				.then(loadHeader)
+				.then(_.partial(readTagBuffer, fileHandle))
+				.then(function (tagBuffer) {
+					closeFile(fileHandle).then(function () {
+						deferred.resolve(tagBuffer);
+					}).fail(deferred.reject);
+				}).fail(deferred.reject);
+		}).fail(deferred.reject);
 
-		async.waterfall(data.actions, function (err, data) {
-			if (!_.isNull(err)) {
-				if(err === "NO_ID3") {
-					return callback(err);
-				} else {
-					return callback('Unable to process file: ' + err);
-				}
-			}
-
-			return callback(null, data.tag_content);
-		});
+		return deferred.promise;
 	};
 
-	var buildActions = function (params, data) {
-		/*
-		if (Buffer.isBuffer(params)) {
-			data.buffer = params;
-			data.actions = [
-				loadHeader,
-				loadTagBuffer
-			];
+	var openFile = function (path) {
+		var deferred = Q.defer();
+
+		fs.open(path, 'r', function (err, fileHandle) {
+			if (err) {
+				deferred.reject(err);
+			} else {
+				deferred.resolve(fileHandle);
+			}
+		});
+
+		return deferred.promise;
+	};
+
+	var readHeaderBuffer = function (fileHandle) {
+		var deferred = Q.defer();
+		var buffer = new Buffer(10);
+
+		fs.read(fileHandle, buffer, 0, 10, 0, function (err) {
+			if (err) {
+				deferred.reject(err);
+			} else {
+				deferred.resolve(buffer);
+			}
+		});
+
+		return deferred.promise;
+	};
+
+	var loadHeader = function (buffer) {
+		var deferred = Q.defer();
+		var header = buffer.slice(0, 10);
+
+		if (header.slice(0, 3).toString() === 'ID3') {
+			var data = id3Size(header.slice(6, 10));
+			deferred.resolve(data);
 		} else {
-		*/
-			// read the buffer from a file
-			data.path = params;
-			data.actions = [
-				openFile,
-				readHeaderBuffer,
-				loadHeader,
-				readTagBuffer,
-				loadTagBuffer,
-				closeFile
-			];
-		/*
+			deferred.reject('NO_ID3');
 		}
-		*/
 
-		return data;
+		return deferred.promise;
 	};
 
+	var readTagBuffer = function (fileHandle, tagSize) {
+		var deferred = Q.defer();
+		var tagBuffer = new Buffer(tagSize);
 
-// loads the details about the tag size etc
-	var loadHeader = function (data, callback) {
-		var header = data.buffer.slice(0, 10);
-
-		if (header.slice(0, 3).toString() !== 'ID3') {
-			return callback("NO_ID3");
-		}
-		data.tag_size = id3Size(header.slice(6, 10));
-
-		data.tag_content = {
-			version: '2.' + header.readUInt8(3) + '.' + header.readUInt8(4)
-		};
-
-		return callback(null, data);
-	};
-
-	var loadTagBuffer = function (data, callback) {
-		data.tag_content.tags = data.buffer.slice(0, data.tag_size);
-
-		return callback(null, data);
-	};
-
-	var openFile = function (data, callback) {
-		fs.open(data.path, 'r', function (err, file_handle) {
+		fs.read(fileHandle, tagBuffer, 0, tagSize, 0, function (err) {
 			if (err) {
-				return callback("Unable to open file");
+				deferred.reject(new Error("Unable to read file"));
+			} else {
+				deferred.resolve(tagBuffer);
 			}
-
-			data.file_handle = file_handle;
-
-			return callback(null, data);
 		});
+
+		return deferred.promise;
 	};
 
-	var closeFile = function (data, callback) {
-		fs.close(data.file_handle, function (err) {
+	var closeFile = function (fileHandle) {
+		var deferred = Q.defer();
+
+		fs.close(fileHandle, function (err) {
 			if (err) {
-				return callback("Unable to close file");
+				deferred.reject(err);
+			} else {
+				deferred.resolve();
 			}
-
-			return callback(null, data);
 		});
+
+		return deferred.promise;
 	};
 
-	var readHeaderBuffer = function (data, callback) {
-		var header_buffer = new Buffer(10);
-
-		fs.read(data.file_handle, header_buffer, 0, 10, 0, function (err) {
-			if (err) {
-				return callback("Unable to read file");
-			}
-
-			data.buffer = header_buffer;
-			return callback(null, data);
-		});
-	};
-
-	var readTagBuffer = function (data, callback) {
-		var tag_buffer = new Buffer(data.tag_size);
-
-		fs.read(data.file_handle, tag_buffer, 0, data.tag_size, 0, function (err) {
-			if (err) {
-				return callback("Unable to read file");
-			}
-
-			data.buffer = tag_buffer;
-			return callback(null, data);
-		});
-	};
-
-// get the size of the tag
 	var id3Size = function (buffer) {
 		return ((buffer[0] & 0x7F) << 21 ) |
 			((buffer[1] & 0x7F) << 14) |

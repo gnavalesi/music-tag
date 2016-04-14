@@ -5,8 +5,8 @@
 
 	var config = require('../../config/config.json');
 
-	var extract = function(tags, version) {
-		return _.extend(processTags(tags), {version: version});
+	var extract = function(tags) {
+		return processTags(tags);
 	};
 
 	var getUserData = function (tag_text) {

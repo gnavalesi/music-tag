@@ -15,8 +15,7 @@
 							title: 'Title 03',
 							album: 'Album 03',
 							genre: '(13)',
-							year: '1999',
-							version: '2.3.0'
+							year: '1999'
 						}
 					},
 					test04: {
@@ -27,8 +26,7 @@
 							title: 'Title 04',
 							album: 'Album 04',
 							genre: '(13)',
-							year: '1999',
-							version: '2.3.0'
+							year: '1999'
 						}
 					}
 				}
@@ -44,8 +42,7 @@
 							title: 'Title 05',
 							album: 'Album 05',
 							genre: '(13)',
-							year: '1999',
-							version: '2.3.0'
+							year: '1999'
 						}
 					},
 					test06: {
@@ -56,8 +53,7 @@
 							title: 'Title 06',
 							album: 'Album 06',
 							genre: '(13)',
-							year: '1999',
-							version: '2.3.0'
+							year: '1999'
 						}
 					}
 				}
@@ -72,8 +68,7 @@
 					title: 'Title 01',
 					album: 'Album 01',
 					genre: '(13)',
-					year: '1999',
-					version: '2.3.0'
+					year: '1999'
 				}
 			},
 			test02 : {
@@ -84,8 +79,7 @@
 					title: 'Title 02',
 					album: 'Album 02',
 					genre: '(13)',
-					year: '1999',
-					version: '2.3.0'
+					year: '1999'
 				}
 			},
 			bad_file: {

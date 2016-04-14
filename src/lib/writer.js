@@ -78,25 +78,23 @@
 	var read = function(options) {
 		var deferred = Q.defer();
 
-		TagReader.read(options.path.fullPath, function (err, tag_buffer) {
-			if (err) {
-				if (err === 'NO_ID3') {
-					options.tags = options.newTags;
-					options.original_size = 0;
-
-					deferred.resolve(options);
-				} else {
-					deferred.reject(new Error(err));
-				}
+		TagReader.read(options.path.fullPath).then(function(tag_buffer) {
+			if(options.replace) {
+				options.tags = options.newTags;
 			} else {
-				if(options.replace) {
-					options.tags = options.newTags;
-				} else {
-					options.tags = _.extend(TagExtractor.extract(tag_buffer.tags, tag_buffer.version), options.newTags);
-				}
-				options.original_size = tag_buffer.tags.length;
+				options.tags = _.extend(TagExtractor.extract(tag_buffer.tags, tag_buffer.version), options.newTags);
+			}
+			options.original_size = tag_buffer.tags.length;
+
+			deferred.resolve(options);
+		}).fail(function(err) {
+			if (err === 'NO_ID3') {
+				options.tags = options.newTags;
+				options.original_size = 0;
 
 				deferred.resolve(options);
+			} else {
+				deferred.reject(new Error(err));
 			}
 		});
 
