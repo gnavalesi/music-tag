@@ -1,4 +1,3 @@
-/*jslint sub: true*/
 (function () {
 	'use strict';
 
@@ -9,9 +8,9 @@
 
 	var generate = function (tags) {
 		var tagData = makeTags(tags);
-		var tagHeader = makeHeader(tagData.total_size);
+		var tagHeader = makeHeader(tagData.length - 10);
 
-		return Buffer.concat([tagHeader, tagData.tag_content]);
+		return Buffer.concat([tagHeader, tagData]);
 	};
 
 	var makeHeader = function (total_size) {
@@ -39,10 +38,7 @@
 	var makeTags = function (tags) {
 		var frames = {},
 			labels = _.invert(config.labels),
-			data = {
-				tag_content: null,
-				total_size: 0
-			};
+				total_size = 0;
 
 		_.each(_.keys(tags), function (it) {
 			var label = it.toLowerCase().replace(/_/g, ' ');
@@ -53,21 +49,21 @@
 					(tag === 'APIC' ? '\u0000\u0069\u006D\u0061\u0067\u0065\u002F\u0070\u006E\u0067\u0000\u0003\u0000' : '\u0000') +
 					tags[it];
 
-				data.total_size += (tag === 'APIC' ? 13 + 10 : 11) + frames[tag].length;
+				total_size += (tag === 'APIC' ? 13 + 10 : 11) + frames[tag].length;
 			} else {
 				if (_.isUndefined(frames['TXXX'])) {
 					frames['TXXX'] = [];
 				}
 
 				frames['TXXX'].push(label + '\u0000' + tags[it]);
-				data.total_size += 10 + _.last(frames['TXXX']).length;
+				total_size += 10 + _.last(frames['TXXX']).length;
 			}
 		});
 
 		// calculate the total size of the tags
-		data.total_size = calculateTotalTagSize(data.total_size);
+		total_size = calculateTotalTagSize(total_size);
 
-		var tag_buffer = new Buffer(data.total_size + 10),
+		var tag_buffer = new Buffer(total_size + 10),
 			pos = 0;
 
 		tag_buffer.fill('');
@@ -82,9 +78,7 @@
 			}
 		});
 
-		data.tag_content = tag_buffer;
-
-		return data;
+		return tag_buffer;
 	};
 
 	var calculateTotalTagSize = function (total_size) {
