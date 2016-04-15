@@ -57,8 +57,8 @@
 		var header = buffer.slice(0, 10);
 
 		if (header.slice(0, 3).toString() === 'ID3') {
-			var data = id3Size(header.slice(6, 10)) + 10;
-			deferred.resolve(data);
+			var dataSize = id3Size(header.slice(6, 10)) + 10;
+			deferred.resolve(dataSize);
 		} else {
 			deferred.reject('NO_ID3');
 		}

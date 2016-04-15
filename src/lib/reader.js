@@ -1,9 +1,9 @@
 (function () {
 	'use strict';
 
-	var fs = require('fs');
-	var _ = require('underscore');
-	var Q = require('q');
+	var fs = require('fs'),
+		_ = require('underscore'),
+		Q = require('q');
 
 	var TagReader = require('./tag_reader'),
 		TagExtractor = require('./tag_extractor'),
@@ -21,7 +21,7 @@
 			};
 		} else if (_.isObject(path)) {
 			options = _.extend(options, path);
-			if(!_.isObject(options.path)) {
+			if (!_.isObject(options.path)) {
 				options.path = {
 					path: path.path
 				};
@@ -48,10 +48,10 @@
 	var readFile = function (options) {
 		var deferred = Q.defer();
 
-		TagReader.read(options.path.fullPath).then(function(tag_buffer) {
+		TagReader.read(options.path.fullPath).then(function (tag_buffer) {
 			var tags = TagExtractor.extract(tag_buffer);
 			deferred.resolve(ReadResult(options.path.fullPath, tags));
-		}).fail(function(err) {
+		}).fail(function (err) {
 			if (err === 'NO_ID3') {
 				deferred.resolve(ReadResult(options.path.fullPath, {}));
 			} else {
@@ -117,7 +117,7 @@
 		return path.toString().endsWith('/') || path.toString().match(/^.+\/[^\.]+$/) !== null;
 	};
 
-	var ReadResult = function(path, data) {
+	var ReadResult = function (path, data) {
 		return {
 			path: path,
 			data: data

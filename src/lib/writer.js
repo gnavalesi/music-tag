@@ -15,7 +15,8 @@
 
 	var defaultOptions = {
 		recursive: true,
-		replace: false
+		replace: false,
+		savePath: null
 	};
 
 	var write = function(path, tags) {
@@ -113,13 +114,7 @@
 	var doWrite = function(options) {
 		var deferred = Q.defer();
 
-		var ops = {
-			original_size: options.original_size,
-			path: options.path.fullPath,
-			tag_buffer: options.tag_buffer
-		};
-
-		TagWriter.write(ops).then(function(data) {
+		TagWriter.write(options.path.fullPath, options.tag_buffer, options.original_size, options.savePath).then(function(data) {
 			deferred.resolve(WriteResult(options.path.fullPath, data));
 		}).fail(deferred.reject);
 

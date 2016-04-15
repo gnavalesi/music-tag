@@ -1,115 +1,53 @@
-(function() {
+(function () {
 	'use strict';
 
-	var _ = require('underscore'),
-			fs = require('fs'),
-			async = require('async'),
-			Buffer = require('buffer').Buffer,
-			Q = require('q');
+	var fs = require('fs'),
+		Buffer = require('buffer').Buffer,
+		Q = require('q');
 
-	var write = function (params) {
+	var write = function (path, tagBuffer, originalSize, savePath) {
 		var deferred = Q.defer();
 
-		var data = {
-			file_handle: null,
-			path: params.path,
-			original_tag_size: params.original_size,
-			tags: params.tag_buffer,
-			buffer: null,
-			save_path: null
-		};
-
-		if(!_.isUndefined(params.save_path)) {
-			data.save_path = params.save_path;
+		if (!savePath) {
+			savePath = path;
 		}
 
-		var actions = buildActions(data);
+		readFile(path, originalSize).then(function (buffer) {
+			buffer = Buffer.concat([tagBuffer, buffer]);
+			writeFile(savePath, buffer).then(function (result) {
+				deferred.resolve(result);
+			}).fail(deferred.reject);
+		}).fail(deferred.reject);
 
-		actions.unshift(function (callback) {
-			return callback(null, data);
-		});
+		return deferred.promise;
+	};
 
-		async.waterfall(actions, function (err, data) {
-			if (!_.isNull(err)) {
+	var readFile = function (path, originalSize) {
+		var deferred = Q.defer();
+
+		fs.readFile(path, function (err, fileData) {
+			if (err) {
 				deferred.reject(err);
 			} else {
-				if (Buffer.isBuffer(data.path) && _.isNull(data.save_path)) {
-					deferred.resolve(data.buffer);
-				} else {
-					deferred.resolve(data.tag_content);
-				}
+				deferred.resolve(fileData.slice(originalSize));
 			}
 		});
 
 		return deferred.promise;
 	};
 
-	var buildActions = function (data) {
-		var actions = [
-			extractMusicBuffer,
-			replaceTags
-		];
+	var writeFile = function (savePath, buffer) {
+		var deferred = Q.defer();
 
-		if (Buffer.isBuffer(data.path)) {
-			data.buffer = data.path;
-
-			if (!_.isNull(data.save_path)) {
-				actions.push(writeFile);
-			}
-		} else {
-			actions = _.union([fileExists, readFile], actions, [writeFile]);
-		}
-
-		return actions;
-	};
-
-	var fileExists = function(data, callback) {
-		if (!_.isString(data.path)) {
-			return callback("File does not exist");
-		}
-
-		fs.exists(data.path, function (exists) {
-			if (!exists) {
-				return callback('File does not exist');
-			}
-
-			return callback(null, data);
-		});
-	};
-
-	var readFile = function (data, callback) {
-		fs.readFile(data.path, function (err, file_data) {
+		fs.writeFile(savePath, buffer, function (err) {
 			if (err) {
-				return callback("Unable to open file");
+				deferred.reject(err);
+			} else {
+				deferred.resolve();
 			}
-
-			data.buffer = file_data.slice(data.original_tag_size);
-			return callback(null, data);
 		});
-	};
 
-	var writeFile = function (data, callback) {
-		var output_path = (!_.isNull(data.save_path) ? data.save_path : data.path);
-
-		fs.writeFile(output_path, data.buffer, function (err) {
-			if (err) {
-				return callback('unable to write file');
-			}
-
-			return callback(null, data);
-		});
-	};
-
-	var replaceTags = function (data, callback) {
-		data.buffer = Buffer.concat([data.tags, data.buffer]);
-
-		return callback(null, data);
-	};
-
-	var extractMusicBuffer = function (data, callback) {
-		data.buffer = data.buffer.slice(data.original_tag_size);
-
-		return callback(null, data);
+		return deferred.promise;
 	};
 
 	module.exports = {
