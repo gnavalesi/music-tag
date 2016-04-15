@@ -149,10 +149,16 @@ describe('music-tag', function () {
 	});
 
 	describe('write', function () {
+		beforeEach(function () {
+			fs.writeFile(testsData.files.bad_file.path, '');
+			fs.writeFile(testsData.files.another_file.path, '');
+		});
+
 		describe('file', function () {
 			it('should save correctly the tags when writing to a non id3 tagged file', function (done) {
 				musicTag.write(testsData.files.bad_file.path, testsData.files.test01.data).then(function (result) {
 					result.path.should.match(testsData.files.bad_file.regex);
+					result.data.should.deepEqual(testsData.files.test01.data);
 
 					musicTag.read(testsData.files.bad_file.path).then(function (readResult) {
 						readResult.data.should.deepEqual(testsData.files.test01.data);
@@ -172,6 +178,7 @@ describe('music-tag', function () {
 			it('should save correctly the tags when writing to a valid file', function (done) {
 				musicTag.write(testsData.files.bad_file.path, testsData.files.test02.data).then(function (result) {
 					result.path.should.match(testsData.files.bad_file.regex);
+					result.data.should.deepEqual(testsData.files.test02.data);
 
 					musicTag.read(testsData.files.bad_file.path).then(function (readResult) {
 						readResult.data.should.deepEqual(testsData.files.test02.data);
@@ -212,30 +219,36 @@ describe('music-tag', function () {
 		});
 
 		describe('folder', function () {
-			it('should save correctly the tags when writing non recursive to a valid folder'/*, function (done) {
-				musicTag.write(path: testsData.path, {
+			it('should save correctly the tags when writing non recursive to a valid folder', function (done) {
+				musicTag.write(testsData.path, {
 					year: '2005'
 				}, {
-			 			 recursive: false
-			 }).then(function (result) {
+					recursive: false
+				}).then(function (result) {
 					result.should.be.Array();
-					result.length.should.be.equal(2);
+					result.length.should.be.equal(3);
 
-					result[0].path.should.match(testsData.files.test01.regex);
-					result[0].data.should.deepEqual(_.extend(testsData.files.test01.data, {year: '2005'}));
+					result[0].path.should.match(testsData.files.bad_file.regex);
+					result[0].data.should.deepEqual({year: '2005'});
 
-					result[1].path.should.match(testsData.files.test02.regex);
-					result[1].data.should.deepEqual(_.extend(testsData.files.test02.data), {year: '2005'});
+					result[1].path.should.match(testsData.files.test01.regex);
+					result[1].data.should.deepEqual(_.extend(testsData.files.test01.data, {year: '2005'}));
+
+					result[2].path.should.match(testsData.files.test02.regex);
+					result[2].data.should.deepEqual(_.extend(testsData.files.test02.data, {year: '2005'}));
 
 					musicTag.read(testsData.path).then(function (readResult) {
 						readResult.should.be.Array();
-						readResult.length.should.be.equal(2);
+						readResult.length.should.be.equal(3);
 
-						readResult[0].path.should.match(testsData.files.test01.regex);
-						readResult[0].data.should.deepEqual(_.extend(testsData.files.test01.data, {year: '2005'}));
+						readResult[0].path.should.match(testsData.files.bad_file.regex);
+						readResult[0].data.should.deepEqual({year: '2005'});
 
-						readResult[1].path.should.match(testsData.files.test02.regex);
-						readResult[1].data.should.deepEqual(_.extend(testsData.files.test02.data), {year: '2005'});
+						readResult[1].path.should.match(testsData.files.test01.regex);
+						readResult[1].data.should.deepEqual(_.extend(testsData.files.test01.data, {year: '2005'}));
+
+						readResult[2].path.should.match(testsData.files.test02.regex);
+						readResult[2].data.should.deepEqual(_.extend(testsData.files.test02.data), {year: '2005'});
 
 						done();
 					}).fail(function (err) {
@@ -250,9 +263,9 @@ describe('music-tag', function () {
 				}).catch(function (err) {
 					done(err);
 				});
-			}*/);
+			});
 
-			it('should save correctly the tags when writing to a valid folder'/*, function (done) {
+			it('should save correctly the tags when writing to a valid folder', function (done) {
 				musicTag.write(testsData.path, {
 					year: '1999'
 				}).then(function (result) {
@@ -318,7 +331,7 @@ describe('music-tag', function () {
 				}).catch(function (err) {
 					done(err);
 				});
-			}*/);
+			});
 
 			it('should return error when when writing to a non existing folder', function (done) {
 				musicTag.write(testsData.path + '/non_existent/', testsData.files.test01.data).then(function (result) {

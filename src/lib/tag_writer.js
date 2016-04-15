@@ -5,16 +5,12 @@
 		Buffer = require('buffer').Buffer,
 		Q = require('q');
 
-	var write = function (path, tagBuffer, originalSize, savePath) {
+	var write = function (path, tagBuffer, originalSize) {
 		var deferred = Q.defer();
-
-		if (!savePath) {
-			savePath = path;
-		}
 
 		readFile(path, originalSize).then(function (buffer) {
 			buffer = Buffer.concat([tagBuffer, buffer]);
-			writeFile(savePath, buffer).then(function (result) {
+			writeFile(path, buffer).then(function (result) {
 				deferred.resolve(result);
 			}).fail(deferred.reject);
 		}).fail(deferred.reject);
@@ -36,10 +32,10 @@
 		return deferred.promise;
 	};
 
-	var writeFile = function (savePath, buffer) {
+	var writeFile = function (path, buffer) {
 		var deferred = Q.defer();
 
-		fs.writeFile(savePath, buffer, function (err) {
+		fs.writeFile(path, buffer, function (err) {
 			if (err) {
 				deferred.reject(err);
 			} else {

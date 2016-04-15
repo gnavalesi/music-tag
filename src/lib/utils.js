@@ -3,6 +3,7 @@
 
 	var fs = require('fs');
 	var Q = require('q');
+	var _ = require('underscore');
 
 	var validatePath = function(path) {
 		var deferred = Q.defer();
@@ -78,9 +79,50 @@
 		return path.toString().match(regex) !== null;
 	};
 
+	var getFiles = function (path, getFolders) {
+		var deferred = Q.defer();
+
+		fs.readdir(path, function (err, files) {
+			if (err) {
+				deferred.reject(new Error(err));
+			} else {
+				files = _.chain(files)
+						.map(_.partial(addPath, path))
+						.filter(function(file) {
+							return (getFolders && isDirectory(file)) || isMusicFile(file);
+						})
+						.map(function(fullPath) {
+							return validatePath(fullPath).then(function(pathData) {
+								if((pathData.isDirectory && getFolders) || pathData.isFile) {
+									return _.extend(pathData, {path: fullPath})
+								}
+							});
+						}).value();
+				Q.all(files).then(function(result) {
+					deferred.resolve(result);
+				}).fail(deferred.reject);
+			}
+		});
+
+		return deferred.promise;
+	};
+
+	var addPath = function (path, file) {
+		return normalizePath(path) + file;
+	};
+
+	var normalizePath = function (path) {
+		return (('' + path).endsWith('/') ? path : path + '/');
+	};
+
+	var isDirectory = function (path) {
+		return path.toString().endsWith('/') || path.toString().match(/^.+\/[^\.]+$/) !== null;
+	};
+
 	module.exports = {
 		validatePath: validatePath,
 		resolvePath: resolvePath,
-		isMusicFile: isMusicFile
+		isMusicFile: isMusicFile,
+		getFiles: getFiles
 	};
 })();

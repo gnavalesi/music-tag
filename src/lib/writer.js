@@ -1,12 +1,11 @@
 (function () {
 	'use strict';
 
-	var Q = require('q');
-	var fs = require('fs');
-	var _ = require('underscore');
+	var Q = require('q'),
+		fs = require('fs'),
+		_ = require('underscore');
 
 	var Utils = require('./utils');
-	var reader = require('./reader');
 
 	var TagReader = require('./tag_reader');
 	var TagExtractor = require('./tag_extractor');
@@ -15,110 +14,108 @@
 
 	var defaultOptions = {
 		recursive: true,
-		replace: false,
-		savePath: null
+		replace: false
 	};
 
-	var write = function(path, tags) {
-		var options = _.clone(defaultOptions);
+	var write = function (path, tags, options) {
+		var deferred = Q.defer();
 
-		if(!_.isObject(tags)) {
-			var deferred = Q.defer();
-			deferred.reject('Invalid tags argument');
-			return deferred.promise;
-		}
-
-		if (_.isString(path)) {
-			options.path = {
-				path: path
-			};
-		} else if (_.isObject(path)) {
-			options = _.extend(options, _.omit(path, 'path'));
-			options.path = {
-				path: path.path
-			};
-		}
-		options.newTags = tags;
-
-		var actions = [Utils.validatePath, Utils.resolvePath, writePath];
-
-		return _.reduce(actions, Q.when, Q(options));
-	};
-
-	var writePath = function(options) {
-		if(options.path.isDirectory) {
-			return writeFolder(options);
-		} else if(options.path.isFile) {
-			if(Utils.isMusicFile(options.path.fullPath)) {
-				return writeFile(options);
-			} else {
-				throw new Error('Unable to recognize path: ' + options.path);
-			}
+		var validParameters = false;
+		if(!_.isString(path)) {
+			deferred.reject(new Error('Invalid path argument: ' + path));
+		} else if(!_.isObject(tags)) {
+			deferred.reject(new Error('Invalid tags argument: ' + tags));
+		} else if(_.isUndefined(options)) {
+			options = defaultOptions;
+			validParameters = true;
+		} else if(_.isObject(options)) {
+			options = _.extend(defaultOptions, options);
+			validParameters = true;
 		} else {
-			throw new Error('Unable to recognize path: ' + options.path);
+			deferred.reject(new Error('Invalid options argument: ' + options));
 		}
+
+		if(validParameters) {
+			Q.all([Utils.validatePath(path), Utils.resolvePath(path)]).then(function(results) {
+				var pathData = results[0];
+				var fullPath = results[1];
+
+				if(pathData.isFile && Utils.isMusicFile(fullPath)) {
+					writeFile(fullPath, tags, options).then(function(writeResult) {
+						deferred.resolve(writeResult);
+					}).fail(deferred.reject);
+				} else if(pathData.isDirectory) {
+					writeFolder(fullPath, tags, options).then(function(writeResults) {
+						deferred.resolve(writeResults);
+					}).fail(deferred.reject)
+				} else {
+					deferred.reject(new Error('Invalid path argument: ' + fullPath));
+				}
+			}).fail(deferred.reject);
+		}
+
+		return deferred.promise;
 	};
 
-	var writeFile = function(options) {
-		var actions = [read, generate, doWrite];
+	var writeFile = function (path, tags, options) {
+		var deferred = Q.defer();
 
-		return _.reduce(actions, Q.when, Q(options));
+		var readDeferred = Q.defer();
+
+		TagReader.read(path).then(function(buffer) {
+			if(!options.replace) {
+				tags = _.extend(TagExtractor.extract(buffer), tags);
+			}
+			readDeferred.resolve({
+				tags: tags,
+				originalSize: buffer.length
+			});
+		}).fail(function(err) {
+			if (err === 'NO_ID3') {
+				readDeferred.resolve({
+					tags: tags,
+					originalSize: 0
+				});
+			} else {
+				readDeferred.reject(err);
+			}
+		});
+
+		readDeferred.promise.then(function(readResult) {
+			var tagBuffer = TagGenerator.generate(readResult.tags);
+
+			TagWriter.write(path, tagBuffer, readResult.originalSize).then(function () {
+				deferred.resolve(WriteResult(path, readResult.tags));
+			}).fail(deferred.reject);
+		}).fail(deferred.reject);
+
+		return deferred.promise;
 	};
 
-	var writeFolder = function(options) {
-		return options;
+	var writeFolder = function (path, tags, options) {
+		var deferred = Q.defer();
+
+		Utils.getFiles(path, options.recursive).then(function(files) {
+			var promises = _.map(files, function(file) {
+				if(file.isFile) {
+					return writeFile(file.path, tags, options);
+				} else {
+					return writeFolder(file.path, tags, options);
+				}
+			});
+			Q.all(promises).then(function(results) {
+				deferred.resolve(_.flatten(results));
+			}).fail(deferred.reject);
+		}).fail(deferred.reject);
+
+		return deferred.promise;
 	};
 
-	var WriteResult = function(path, data) {
+	var WriteResult = function (path, data) {
 		return {
 			path: path,
 			data: data
 		};
-	};
-
-	var read = function(options) {
-		var deferred = Q.defer();
-
-		TagReader.read(options.path.fullPath).then(function(tag_buffer) {
-			if(options.replace) {
-				options.tags = options.newTags;
-			} else {
-				options.tags = _.extend(TagExtractor.extract(tag_buffer.tags, tag_buffer.version), options.newTags);
-			}
-			options.original_size = tag_buffer.tags.length;
-
-			deferred.resolve(options);
-		}).fail(function(err) {
-			if (err === 'NO_ID3') {
-				options.tags = options.newTags;
-				options.original_size = 0;
-
-				deferred.resolve(options);
-			} else {
-				deferred.reject(new Error(err));
-			}
-		});
-
-		return deferred.promise;
-	};
-
-	var generate = function(options) {
-		var deferred = Q.defer();
-
-		options.tag_buffer = TagGenerator.generate(options.tags);
-		deferred.resolve(options);
-
-		return deferred.promise;
-	};
-
-	var doWrite = function(options) {
-		var deferred = Q.defer();
-
-		TagWriter.write(options.path.fullPath, options.tag_buffer, options.original_size, options.savePath).then(function(data) {
-			deferred.resolve(WriteResult(options.path.fullPath, data));
-		}).fail(deferred.reject);
-
-		return deferred.promise;
 	};
 
 	module.exports = {

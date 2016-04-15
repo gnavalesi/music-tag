@@ -19,16 +19,14 @@
 		var validParameters = false;
 		if(!_.isString(path)) {
 			deferred.reject(new Error('Invalid path argument: ' + path));
+		} else if(_.isUndefined(options)) {
+			options = defaultOptions;
+			validParameters = true;
+		} else if(_.isObject(options)) {
+			options = _.extend(defaultOptions, options);
+			validParameters = true;
 		} else {
-			if(_.isUndefined(options)) {
-				options = defaultOptions;
-				validParameters = true;
-			} else if(_.isObject(options)) {
-				options = _.extend(defaultOptions, options);
-				validParameters = true;
-			} else {
-				deferred.reject(new Error('Invalid options argument: ' + options));
-			}
+			deferred.reject(new Error('Invalid options argument: ' + options));
 		}
 
 		if(validParameters) {
@@ -72,7 +70,7 @@
 	var readFolder = function (path, recursive) {
 		var deferred = Q.defer();
 
-		getFiles(path, recursive).then(function(files) {
+		Utils.getFiles(path, recursive).then(function(files) {
 			var promises = _.map(files, function(file) {
 				if(file.isFile) {
 					return readFile(file.path);
@@ -86,46 +84,6 @@
 		}).fail(deferred.reject);
 
 		return deferred.promise;
-	};
-
-	var getFiles = function (path, getFolders) {
-		var deferred = Q.defer();
-
-		fs.readdir(path, function (err, files) {
-			if (err) {
-				deferred.reject(new Error(err));
-			} else {
-				files = _.chain(files)
-						.map(_.partial(addPath, path))
-						.filter(function(file) {
-							return (getFolders && isDirectory(file)) || Utils.isMusicFile(file);
-						})
-						.map(function(fullPath) {
-							return Utils.validatePath(fullPath).then(function(pathData) {
-								if((pathData.isDirectory && getFolders) || pathData.isFile) {
-									return _.extend(pathData, {path: fullPath})
-								}
-							});
-						}).value();
-				Q.all(files).then(function(result) {
-					deferred.resolve(result);
-				}).fail(deferred.reject);
-			}
-		});
-
-		return deferred.promise;
-	};
-
-	var addPath = function (path, file) {
-		return normalizePath(path) + file;
-	};
-
-	var normalizePath = function (path) {
-		return (('' + path).endsWith('/') ? path : path + '/');
-	};
-
-	var isDirectory = function (path) {
-		return path.toString().endsWith('/') || path.toString().match(/^.+\/[^\.]+$/) !== null;
 	};
 
 	var ReadResult = function (path, data) {

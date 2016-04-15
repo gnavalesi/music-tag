@@ -31,12 +31,7 @@
 	};
 
 	var processTags = function (content) {
-		var tags = {
-			artist: "unknown",
-			title: "unknown",
-			album: "unknown",
-			genre: "unknown"
-		};
+		var tags = {};
 
 		var pos = 10;
 
