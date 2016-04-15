@@ -119,13 +119,9 @@
 			tag_buffer: options.tag_buffer
 		};
 
-		TagWriter.write(ops, function(err, data) {
-			if (!_.isNull(err)) {
-				deferred.reject(err);
-			} else {
-				deferred.resolve(WriteResult(options.path.fullPath, data));
-			}
-		});
+		TagWriter.write(ops).then(function(data) {
+			deferred.resolve(WriteResult(options.path.fullPath, data));
+		}).fail(deferred.reject);
 
 		return deferred.promise;
 	};

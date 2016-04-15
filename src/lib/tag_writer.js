@@ -4,9 +4,12 @@
 	var _ = require('underscore'),
 			fs = require('fs'),
 			async = require('async'),
-			Buffer = require('buffer').Buffer;
+			Buffer = require('buffer').Buffer,
+			Q = require('q');
 
-	var write = function (params, callback) {
+	var write = function (params) {
+		var deferred = Q.defer();
+
 		var data = {
 			file_handle: null,
 			path: params.path,
@@ -28,15 +31,17 @@
 
 		async.waterfall(actions, function (err, data) {
 			if (!_.isNull(err)) {
-				return callback('Unable to process file: ' + err);
+				deferred.reject(err);
+			} else {
+				if (Buffer.isBuffer(data.path) && _.isNull(data.save_path)) {
+					deferred.resolve(data.buffer);
+				} else {
+					deferred.resolve(data.tag_content);
+				}
 			}
-
-			if (Buffer.isBuffer(data.path) && _.isNull(data.save_path)) {
-				return callback(null, data.buffer);
-			}
-
-			return callback(null, data.tag_content);
 		});
+
+		return deferred.promise;
 	};
 
 	var buildActions = function (data) {
