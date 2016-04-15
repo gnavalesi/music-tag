@@ -101,8 +101,7 @@ describe('music-tag', function () {
 			});
 
 			it('should return the right number of valid objects when reading non recursive a valid folder', function (done) {
-				musicTag.read({
-					path: testsData.path,
+				musicTag.read(testsData.path, {
 					recursive: false
 				}).then(function (withoutSlashResult) {
 					withoutSlashResult.should.be.Array();
@@ -214,12 +213,11 @@ describe('music-tag', function () {
 
 		describe('folder', function () {
 			it('should save correctly the tags when writing non recursive to a valid folder'/*, function (done) {
-				musicTag.write({
-					path: testsData.path,
-					recursive: false
-				}, {
+				musicTag.write(path: testsData.path, {
 					year: '2005'
-				}).then(function (result) {
+				}, {
+			 			 recursive: false
+			 }).then(function (result) {
 					result.should.be.Array();
 					result.length.should.be.equal(2);
 

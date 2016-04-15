@@ -13,47 +13,54 @@
 		recursive: true
 	};
 
-	var read = function (path) {
-		var options = _.clone(defaultOptions);
-		if (_.isString(path)) {
-			options.path = {
-				path: path
-			};
-		} else if (_.isObject(path)) {
-			options = _.extend(options, path);
-			if (!_.isObject(options.path)) {
-				options.path = {
-					path: path.path
-				};
-			}
-		} else {
-
-		}
-
-		var actions = [Utils.validatePath, Utils.resolvePath, readPath];
-
-		return _.reduce(actions, Q.when, Q(options));
-	};
-
-	var readPath = function (options) {
-		if (options.path.isDirectory) {
-			return readFolder(options);
-		} else if (options.path.isFile && Utils.isMusicFile(options.path.fullPath)) {
-			return readFile(options);
-		} else {
-			throw new Error('Unable to recognize path: ' + data.path);
-		}
-	};
-
-	var readFile = function (options) {
+	var read = function (path, options) {
 		var deferred = Q.defer();
 
-		TagReader.read(options.path.fullPath).then(function (tag_buffer) {
+		var validParameters = false;
+		if(!_.isString(path)) {
+			deferred.reject(new Error('Invalid path argument: ' + path));
+		} else {
+			if(_.isUndefined(options)) {
+				options = defaultOptions;
+				validParameters = true;
+			} else if(_.isObject(options)) {
+				options = _.extend(defaultOptions, options);
+				validParameters = true;
+			} else {
+				deferred.reject(new Error('Invalid options argument: ' + options));
+			}
+		}
+
+		if(validParameters) {
+			Q.all([Utils.validatePath(path), Utils.resolvePath(path)]).then(function(results) {
+				var pathData = results[0];
+				var fullPath = results[1];
+
+				if(pathData.isFile && Utils.isMusicFile(fullPath)) {
+					readFile(fullPath).then(function(readResult) {
+						deferred.resolve(readResult);
+					}).fail(deferred.reject);
+				} else if(pathData.isDirectory) {
+					readFolder(fullPath, options.recursive).then(function(readResults) {
+						deferred.resolve(readResults);
+					}).fail(deferred.reject)
+				} else {
+					deferred.reject(new Error('Invalid path argument: ' + fullPath));
+				}
+			}).fail(deferred.reject);
+		}
+
+		return deferred.promise;
+	};
+
+	var readFile = function (path) {
+		var deferred = Q.defer();
+		TagReader.read(path).then(function (tag_buffer) {
 			var tags = TagExtractor.extract(tag_buffer);
-			deferred.resolve(ReadResult(options.path.fullPath, tags));
+			deferred.resolve(ReadResult(path, tags));
 		}).fail(function (err) {
 			if (err === 'NO_ID3') {
-				deferred.resolve(ReadResult(options.path.fullPath, {}));
+				deferred.resolve(ReadResult(path, {}));
 			} else {
 				deferred.reject(new Error(err));
 			}
@@ -62,47 +69,51 @@
 		return deferred.promise;
 	};
 
-	var readFolder = function (options) {
-		var actions = [getFiles, readPaths];
-
+	var readFolder = function (path, recursive) {
 		var deferred = Q.defer();
-		_.reduce(actions, Q.when, Q(options)).then(function (results) {
-			deferred.resolve(_.flatten(results));
-		}).fail(function (err) {
-			deferred.reject(new Error(err));
-		});
+
+		getFiles(path, recursive).then(function(files) {
+			var promises = _.map(files, function(file) {
+				if(file.isFile) {
+					return readFile(file.path);
+				} else {
+					return readFolder(file.path, recursive);
+				}
+			});
+			Q.all(promises).then(function(results) {
+				deferred.resolve(_.flatten(results));
+			}).fail(deferred.reject);
+		}).fail(deferred.reject);
 
 		return deferred.promise;
 	};
 
-	var getFiles = function (options) {
+	var getFiles = function (path, getFolders) {
 		var deferred = Q.defer();
 
-		fs.readdir(options.path.fullPath, function (err, files) {
+		fs.readdir(path, function (err, files) {
 			if (err) {
 				deferred.reject(new Error(err));
 			} else {
-				options.files = _.map(files, _.partial(addPath, options.path.fullPath));
-				deferred.resolve(options);
+				files = _.chain(files)
+						.map(_.partial(addPath, path))
+						.filter(function(file) {
+							return (getFolders && isDirectory(file)) || Utils.isMusicFile(file);
+						})
+						.map(function(fullPath) {
+							return Utils.validatePath(fullPath).then(function(pathData) {
+								if((pathData.isDirectory && getFolders) || pathData.isFile) {
+									return _.extend(pathData, {path: fullPath})
+								}
+							});
+						}).value();
+				Q.all(files).then(function(result) {
+					deferred.resolve(result);
+				}).fail(deferred.reject);
 			}
 		});
 
 		return deferred.promise;
-	};
-
-	var readPaths = function (options) {
-		var promises = _.chain(options.files)
-			.filter(function (file) {
-				return Utils.isMusicFile(file) || (options.recursive && isDirectory(file));
-			})
-			.map(function (path) {
-				var pathOptions = _.omit(options, ['files']);
-				pathOptions.path = path;
-
-				return read(pathOptions);
-			}).value();
-
-		return Q.all(promises);
 	};
 
 	var addPath = function (path, file) {

@@ -4,6 +4,26 @@
 	var fs = require('fs');
 	var Q = require('q');
 
+	var validatePath = function(path) {
+		var deferred = Q.defer();
+
+		fs.stat(path, function (err, stats) {
+			if (err) {
+				deferred.reject(err);
+			} else {
+				var data = {
+					isDirectory: stats.isDirectory(),
+					isFile: stats.isFile()
+				};
+
+				deferred.resolve(data);
+			}
+		});
+
+		return deferred.promise;
+	};
+
+	/*
 	var validatePath = function (options) {
 		var deferred = Q.defer();
 
@@ -20,7 +40,23 @@
 
 		return deferred.promise;
 	};
+	*/
 
+	var resolvePath = function (path) {
+		var deferred = Q.defer();
+
+		fs.realpath(path, function (err, resolvedPath) {
+			if (err) {
+				deferred.reject(err);
+			} else {
+				deferred.resolve(resolvedPath);
+			}
+		});
+
+		return deferred.promise;
+	};
+
+	/*
 	var resolvePath = function (options) {
 		var deferred = Q.defer();
 
@@ -35,6 +71,7 @@
 
 		return deferred.promise;
 	};
+	*/
 
 	var isMusicFile = function(path) {
 		var regex = /.+.(mp3|flac|wav)/i;
