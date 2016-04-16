@@ -231,6 +231,16 @@ describe('music-tag', function () {
 						done(err);
 					});
 				});
+
+				it('should return error when when invalid options argument is passed', function (done) {
+					musicTag.write(testsData.files.bad_file.path, testsData.files.test01.data, 1).then(function (result) {
+						done(new Error('Value returned: ' + result));
+					}).fail(function () {
+						done();
+					}).catch(function (err) {
+						done(err);
+					});
+				});
 			});
 		});
 
