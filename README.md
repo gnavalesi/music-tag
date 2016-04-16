@@ -1,6 +1,7 @@
 # music-tag
 
 ![](https://travis-ci.org/gnavalesi/music-tag.svg?branch=master) ![](https://coveralls.io/repos/github/gnavalesi/music-tag/badge.svg?branch=master)
+![](https://codeclimate.com/github/gnavalesi/music-tag/badges/gpa.svg)
 
 ID3 reader and writer for NodeJS
 
