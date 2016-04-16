@@ -25,14 +25,14 @@ var TagGenerator = require('./tag_generator');
 			deferred.reject(new Error('Invalid path argument: ' + path));
 		} else if (!_.isObject(tags)) {
 			deferred.reject(new Error('Invalid tags argument: ' + tags));
-		} else if (_.isUndefined(options)) {
-			options = _.clone(defaultOptions);
-			validParameters = true;
-		} else if (_.isObject(options)) {
-			options = _.extend(_.clone(defaultOptions), options);
-			validParameters = true;
 		} else {
-			deferred.reject(new Error('Invalid options argument: ' + options));
+			var validatedOptions = Utils.validateOptions(options, defaultOptions);
+			if(_.isNull(validatedOptions)) {
+				deferred.reject(new Error('Invalid options argument: ' + options));
+			} else {
+				options = validatedOptions;
+				validParameters = true;
+			}
 		}
 
 		if (validParameters) {

@@ -83,10 +83,23 @@ var _ = require('underscore');
 		return path.toString().endsWith('/') || path.toString().match(/^.+\/[^\.]+$/) !== null;
 	};
 
+	var validateOptions = function(options, defaultOptions) {
+		var result = null;
+
+		if (_.isUndefined(options)) {
+			result = _.clone(defaultOptions);
+		} else if (_.isObject(options)) {
+			result = _.extend(_.clone(defaultOptions), options);
+		}
+
+		return result;
+	};
+
 	module.exports = {
 		validatePath: validatePath,
 		resolvePath: resolvePath,
 		isMusicFile: isMusicFile,
-		getFiles: getFiles
+		getFiles: getFiles,
+		validateOptions: validateOptions
 	};
 }());
