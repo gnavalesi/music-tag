@@ -37,15 +37,15 @@ var TagReader = require('./tag_reader'),
 				if (pathData.isFile && Utils.isMusicFile(fullPath)) {
 					readFile(fullPath).then(function (readResult) {
 						deferred.resolve(readResult);
-					}).fail(deferred.reject);
+					}).catch(deferred.reject);
 				} else if (pathData.isDirectory) {
 					readFolder(fullPath, options.recursive).then(function (readResults) {
 						deferred.resolve(readResults);
-					}).fail(deferred.reject);
+					}).catch(deferred.reject);
 				} else {
 					deferred.reject(new Error('Invalid path argument: ' + fullPath));
 				}
-			}).fail(deferred.reject);
+			}).catch(deferred.reject);
 		}
 
 		return deferred.promise;
@@ -56,7 +56,7 @@ var TagReader = require('./tag_reader'),
 		TagReader.read(path).then(function (tag_buffer) {
 			var tags = TagExtractor.extract(tag_buffer);
 			deferred.resolve(ReadResult(path, tags));
-		}).fail(function (err) {
+		}).catch(function (err) {
 			if (err === 'NO_ID3') {
 				deferred.resolve(ReadResult(path, {}));
 			} else {
@@ -80,8 +80,8 @@ var TagReader = require('./tag_reader'),
 			});
 			Q.all(promises).then(function (results) {
 				deferred.resolve(_.flatten(results));
-			}).fail(deferred.reject);
-		}).fail(deferred.reject);
+			}).catch(deferred.reject);
+		}).catch(deferred.reject);
 
 		return deferred.promise;
 	};

@@ -27,7 +27,7 @@ var TagGenerator = require('./tag_generator');
 			deferred.reject(new Error('Invalid tags argument: ' + tags));
 		} else {
 			var validatedOptions = Utils.validateOptions(options, defaultOptions);
-			if(_.isNull(validatedOptions)) {
+			if (_.isNull(validatedOptions)) {
 				deferred.reject(new Error('Invalid options argument: ' + options));
 			} else {
 				options = validatedOptions;
@@ -43,15 +43,15 @@ var TagGenerator = require('./tag_generator');
 				if (pathData.isFile && Utils.isMusicFile(fullPath)) {
 					writeFile(fullPath, tags, options).then(function (writeResult) {
 						deferred.resolve(writeResult);
-					}).fail(deferred.reject);
+					}).catch(deferred.reject);
 				} else if (pathData.isDirectory) {
 					writeFolder(fullPath, tags, options).then(function (writeResults) {
 						deferred.resolve(writeResults);
-					}).fail(deferred.reject);
+					}).catch(deferred.reject);
 				} else {
 					deferred.reject(new Error('Invalid path argument: ' + fullPath));
 				}
-			}).fail(deferred.reject);
+			}).catch(deferred.reject);
 		}
 
 		return deferred.promise;
@@ -70,7 +70,7 @@ var TagGenerator = require('./tag_generator');
 				tags: tags,
 				originalSize: buffer.length
 			});
-		}).fail(function (err) {
+		}).catch(function (err) {
 			if (err === 'NO_ID3') {
 				readDeferred.resolve({
 					tags: tags,
@@ -86,8 +86,8 @@ var TagGenerator = require('./tag_generator');
 
 			TagWriter.write(path, tagBuffer, readResult.originalSize).then(function () {
 				deferred.resolve(WriteResult(path, readResult.tags));
-			}).fail(deferred.reject);
-		}).fail(deferred.reject);
+			}).catch(deferred.reject);
+		}).catch(deferred.reject);
 
 		return deferred.promise;
 	};
@@ -105,8 +105,8 @@ var TagGenerator = require('./tag_generator');
 			});
 			Q.all(promises).then(function (results) {
 				deferred.resolve(_.flatten(results));
-			}).fail(deferred.reject);
-		}).fail(deferred.reject);
+			}).catch(deferred.reject);
+		}).catch(deferred.reject);
 
 		return deferred.promise;
 	};

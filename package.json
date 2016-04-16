@@ -12,8 +12,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "buffer": "^2.0.3",
-    "q": "^1.4.1",
+    "buffer": "^4.5.1",
+    "q": "^2.0.3",
     "underscore": "latest"
   },
   "devDependencies": {

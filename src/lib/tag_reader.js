@@ -17,9 +17,9 @@ var _ = require('underscore'),
 				.then(function (tagBuffer) {
 					closeFile(fileHandle).then(function () {
 						deferred.resolve(tagBuffer);
-					}).fail(deferred.reject);
-				}).fail(deferred.reject);
-		}).fail(deferred.reject);
+					}).catch(deferred.reject);
+				}).catch(deferred.reject);
+		}).catch(deferred.reject);
 
 		return deferred.promise;
 	};

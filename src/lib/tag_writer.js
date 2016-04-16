@@ -13,8 +13,8 @@ var fs = require('fs'),
 			buffer = Buffer.concat([tagBuffer, buffer]);
 			writeFile(path, buffer).then(function (result) {
 				deferred.resolve(result);
-			}).fail(deferred.reject);
-		}).fail(deferred.reject);
+			}).catch(deferred.reject);
+		}).catch(deferred.reject);
 
 		return deferred.promise;
 	};

@@ -64,7 +64,7 @@ var _ = require('underscore');
 					}).value();
 				Q.all(files).then(function (result) {
 					deferred.resolve(result);
-				}).fail(deferred.reject);
+				}).catch(deferred.reject);
 			}
 		});
 

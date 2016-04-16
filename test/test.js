@@ -29,12 +29,10 @@ describe('music-tag', function () {
 					musicTag.read(0).then(function () {
 						assert(false);
 						done();
-					}).fail(function (err) {
+					}).catch(function (err) {
 						err.should.be.Error();
 						err.message.should.equal('Invalid path argument: 0');
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
@@ -42,12 +40,10 @@ describe('music-tag', function () {
 					musicTag.read(testsData.files.test01.path, 1).then(function () {
 						assert(false);
 						done();
-					}).fail(function (err) {
+					}).catch(function (err) {
 						err.should.be.Error();
 						err.message.should.equal('Invalid options argument: 1');
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 			});
@@ -60,7 +56,7 @@ describe('music-tag', function () {
 						result.path.should.match(testsData.files.test01.regex);
 						result.data.should.deepEqual(testsData.files.test01.data);
 						done();
-					}).fail(done).catch(done);
+					}).catch(done);
 				});
 
 				it('should return an empty result when reading no id3 tagged file', function (done) {
@@ -68,7 +64,7 @@ describe('music-tag', function () {
 						result.path.should.match(testsData.files.bad_file.regex);
 						result.data.should.deepEqual(testsData.files.bad_file.data);
 						done();
-					}).fail(done).catch(done);
+					}).catch(done);
 				});
 			});
 
@@ -80,30 +76,24 @@ describe('music-tag', function () {
 				it('should return error when reading a non existing file', function (done) {
 					musicTag.read(testsData.path + '/non_existent.mp3').then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when reading an invalid file', function (done) {
 					musicTag.read(testsData.files.another_file.path).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when reading a file with no permissions', function (done) {
 					musicTag.read(testsData.files.test02.path).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
@@ -144,10 +134,10 @@ describe('music-tag', function () {
 						musicTag.read(testsData.path + '/').then(function (withSlashResult) {
 							withSlashResult.should.deepEqual(withoutSlashResult);
 							done();
-						}).fail(function (err) {
+						}).catch(function (err) {
 							done(err);
 						});
-					}).fail(done).catch(done);
+					}).catch(done);
 				});
 
 				it('should return the right number of valid objects when reading non recursive a valid folder', function (done) {
@@ -167,7 +157,7 @@ describe('music-tag', function () {
 						withoutSlashResult[2].data.should.deepEqual(testsData.files.test02.data);
 
 						done();
-					}).fail(done).catch(done);
+					}).catch(done);
 				});
 			});
 
@@ -180,7 +170,7 @@ describe('music-tag', function () {
 					musicTag.read(testsData.path + '/non_existent').then(function () {
 						assert(false);
 						done();
-					}).fail(function (err) {
+					}).catch(function (err) {
 						err.should.be.Error();
 						done();
 					});
@@ -190,7 +180,7 @@ describe('music-tag', function () {
 					musicTag.read(testsData.directories.directory01.path).then(function () {
 						assert(false);
 						done();
-					}).fail(function (err) {
+					}).catch(function (err) {
 						err.should.be.Error();
 						done();
 					});
@@ -215,30 +205,24 @@ describe('music-tag', function () {
 				it('should return error when when invalid path argument is passed', function (done) {
 					musicTag.write(0, testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when when invalid tags argument is passed', function (done) {
 					musicTag.write(testsData.files.bad_file.path, 1).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when when invalid options argument is passed', function (done) {
 					musicTag.write(testsData.files.bad_file.path, testsData.files.test01.data, 1).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 			});
@@ -254,8 +238,8 @@ describe('music-tag', function () {
 						musicTag.read(testsData.files.bad_file.path).then(function (readResult) {
 							readResult.data.should.deepEqual(testsData.files.test01.data);
 							done();
-						}).fail(done).catch(done);
-					}).fail(done).catch(done);
+						}).catch(done);
+					}).catch(done);
 				});
 
 				it('should save correctly the tags when writing to a valid file', function (done) {
@@ -266,8 +250,8 @@ describe('music-tag', function () {
 						musicTag.read(testsData.files.test01.path).then(function (readResult) {
 							readResult.data.should.deepEqual(testsData.files.test01.data);
 							done();
-						}).fail(done).catch(done);
-					}).fail(done).catch(done);
+						}).catch(done);
+					}).catch(done);
 				});
 
 				it('should save correctly custom tags when writing to a valid file', function (done) {
@@ -278,8 +262,8 @@ describe('music-tag', function () {
 						musicTag.read(testsData.files.test02.path).then(function (readResult) {
 							readResult.data.should.deepEqual(_.extend(testsData.files.test02.data, {custom: 'a value'}));
 							done();
-						}).fail(done).catch(done);
-					}).fail(done).catch(done);
+						}).catch(done);
+					}).catch(done);
 				});
 			});
 
@@ -291,30 +275,24 @@ describe('music-tag', function () {
 				it('should return error when writing to a non existing file', function (done) {
 					musicTag.write(testsData.path + '/non_existent.mp3', testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function() {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when writing to an invalid file', function (done) {
 					musicTag.write(testsData.files.another_file, testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + _.pairs(result)));
-					}).fail(function () {
+					}).catch(function() {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when writing a file with no permissions', function (done) {
 					musicTag.write(testsData.files.test01.path, testsData.files.test02.data).then(function (result) {
 						done(new Error('Value returned: ' + _.pairs(result)));
-					}).fail(function () {
+					}).catch(function() {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
@@ -360,8 +338,8 @@ describe('music-tag', function () {
 							readResult[2].data.should.deepEqual(_.extend(testsData.files.test02.data), {year: '2005'});
 
 							done();
-						}).fail(done).catch(done);
-					}).fail(done).catch(done);
+						}).catch(done);
+					}).catch(done);
 				});
 
 				it('should save correctly the tags when writing to a valid folder', function (done) {
@@ -418,8 +396,8 @@ describe('music-tag', function () {
 							readResult[6].data.should.deepEqual(testsData.files.test02.data);
 
 							done();
-						}).fail(done).catch(done);
-					}).fail(done).catch(done);
+						}).catch(done);
+					}).catch(done);
 				});
 			});
 
@@ -431,20 +409,16 @@ describe('music-tag', function () {
 				it('should return error when when writing to a non existing folder', function (done) {
 					musicTag.write(testsData.path + '/non_existent/', testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
 				it('should return error when writing a folder with no permissions', function (done) {
 					musicTag.write(testsData.directories.directory01.path, testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).fail(function () {
+					}).catch(function () {
 						done();
-					}).catch(function (err) {
-						done(err);
 					});
 				});
 
