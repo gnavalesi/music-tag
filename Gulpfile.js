@@ -13,53 +13,55 @@ gulp.task('clean', function () {
 gulp.task('jshint', function () {
 	return gulp.src(['./src/**/*.js', './test/**/*.js'])
 		.pipe(jshint())
-		.pipe(jshint.reporter('default'));
+		.pipe(jshint.reporter('default'))
+		.pipe(jshint.reporter('fail'));
 });
 
-gulp.task('build', ['jshint', 'clean'], function () {
-	return gulp.src(['./src/**/*.js'])
-		.pipe(gulp.dest('./build'));
+gulp.task('test', ['clean', 'jshint'], function () {
+	return gulp.src('./test/**/*.js')
+		.pipe(mocha());
 });
 
-gulp.task('coverage', ['build'], function () {
+gulp.task('pre-coverage', ['clean', 'jshint'], function () {
 	return gulp.src(['./src/**/*.js'])
 		.pipe(istanbul())
 		.pipe(istanbul.hookRequire());
 });
 
-gulp.task('test-coverage', ['coverage'], function() {
-	return gulp.src('./test/**/*.js')
-			.pipe(mocha())
-			.pipe(istanbul.writeReports())
-			.pipe(istanbul.enforceThresholds({thresholds: {global: 30}}));
-});
-
-gulp.task('test', function () {
+gulp.task('coverage', ['pre-coverage'], function () {
 	return gulp.src('./test/**/*.js')
 		.pipe(mocha())
-		.on('error', function (error) {
-			console.log(error);
-			this.emit('end');
-		});
+		.pipe(istanbul.writeReports())
+		.pipe(istanbul.enforceThresholds({thresholds: {global: 90}}));
 });
 
-gulp.task('dev', ['test'], function () {
-	return gulp.watch(['./src/**/*.js', './test/**/*.js'], ['test']);
-});
-
-gulp.task('dev-coverage', ['test-coverage'], function () {
-	return gulp.watch(['./src/**/*.js', './test/**/*.js'], ['test-coverage']);
-});
-
-gulp.task('dist', ['test-coverage'], function () {
+gulp.task('dist', ['coverage'], function () {
 
 });
 
-gulp.task('ci', ['dist'], function() {
+gulp.task('dev-jshint', function() {
+	return gulp.src(['./src/**/*.js', './test/**/*.js'])
+			.pipe(jshint())
+			.pipe(jshint.reporter('default'));
+});
+
+gulp.task('dev-test', ['dev-jshint'], function () {
+	return gulp.src('./test/**/*.js')
+			.pipe(mocha())
+			.on('error', function (error) {
+				console.log(error);
+				this.emit('end');
+			});
+});
+
+gulp.task('dev', function () {
+	return gulp.watch(['./src/**/*.js', './test/**/*.js'], ['dev-test']);
+});
+
+gulp.task('ci', ['dist'], function () {
 	return gulp.src('./coverage/**/lcov.info')
-			.pipe(coveralls());
+		.pipe(coveralls());
 });
-
 
 
 

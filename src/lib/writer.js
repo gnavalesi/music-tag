@@ -47,7 +47,7 @@ var TagGenerator = require('./tag_generator');
 				} else if (pathData.isDirectory) {
 					writeFolder(fullPath, tags, options).then(function (writeResults) {
 						deferred.resolve(writeResults);
-					}).fail(deferred.reject)
+					}).fail(deferred.reject);
 				} else {
 					deferred.reject(new Error('Invalid path argument: ' + fullPath));
 				}

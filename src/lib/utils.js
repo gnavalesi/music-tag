@@ -58,7 +58,7 @@ var _ = require('underscore');
 					.map(function (fullPath) {
 						return validatePath(fullPath).then(function (pathData) {
 							if ((pathData.isDirectory && getFolders) || pathData.isFile) {
-								return _.extend(pathData, {path: fullPath})
+								return _.extend(pathData, {path: fullPath});
 							}
 						});
 					}).value();

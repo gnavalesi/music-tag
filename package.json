@@ -1,32 +1,31 @@
 {
-	"name": "music-tag",
-	"version": "0.0.1",
-	"description": "ID3 reader and writer for NodeJS",
-	"repository": "https://github.com/gnavalesi/music-tag",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"dependencies": {
-		"async": "^2.0.0-rc.2",
-		"buffer": "^4.5.1",
-		"glob": "^7.0.3",
-		"q": "^1.4.1",
-		"underscore": "latest"
-	},
-	"devDependencies": {
-		"gulp": "^3.9.1",
-		"gulp-batch": "^1.0.5",
-		"gulp-clean": "^0.3.2",
-		"gulp-coveralls": "^0.1.4",
-		"gulp-istanbul": "^0.10.4",
-		"gulp-jshint": "^2.0.0",
-		"gulp-mocha": "^2.2.0",
-		"gulp-watch": "^4.3.5",
-		"istanbul": "^0.4.3",
-		"jshint": "^2.9.1",
-		"mocha": "^2.4.5",
-		"rimraf": "latest",
-		"should": "^8.3.0",
-		"unzip": "^0.1.11"
-	}
+  "name": "music-tag",
+  "version": "0.0.2",
+  "description": "ID3 reader and writer for NodeJS",
+  "homepage": "https://github.com/gnavalesi/music-tag",
+  "repository": "https://github.com/gnavalesi/music-tag.git",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gnavalesi/music-tag/issues"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "buffer": "^2.0.3",
+    "q": "^1.4.1",
+    "underscore": "latest"
+  },
+  "devDependencies": {
+    "gulp": "latest",
+    "gulp-clean": "latest",
+    "gulp-coveralls": "latest",
+    "gulp-istanbul": "latest",
+    "gulp-jshint": "latest",
+    "gulp-mocha": "latest",
+    "jshint": "^2.9.1",
+    "rimraf": "latest",
+    "should": "latest",
+    "unzip": "latest"
+  }
 }

@@ -51,12 +51,12 @@ var config = require('../../config/config.json');
 
 				total_size += (tag === 'APIC' ? 13 + 10 : 11) + frames[tag].length;
 			} else {
-				if (_.isUndefined(frames['TXXX'])) {
-					frames['TXXX'] = [];
+				if (_.isUndefined(frames.TXXX)) {
+					frames.TXXX = [];
 				}
 
-				frames['TXXX'].push(label + '\u0000' + tags[it]);
-				total_size += 10 + _.last(frames['TXXX']).length;
+				frames.TXXX.push(label + '\u0000' + tags[it]);
+				total_size += 10 + _.last(frames.TXXX).length;
 			}
 		});
 

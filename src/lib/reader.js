@@ -41,7 +41,7 @@ var TagReader = require('./tag_reader'),
 				} else if (pathData.isDirectory) {
 					readFolder(fullPath, options.recursive).then(function (readResults) {
 						deferred.resolve(readResults);
-					}).fail(deferred.reject)
+					}).fail(deferred.reject);
 				} else {
 					deferred.reject(new Error('Invalid path argument: ' + fullPath));
 				}
