@@ -2,7 +2,8 @@ var gulp = require('gulp'),
 	jshint = require('gulp-jshint'),
 	istanbul = require('gulp-istanbul'),
 	mocha = require('gulp-mocha'),
-	clean = require('gulp-clean');
+	clean = require('gulp-clean'),
+	coveralls = require('gulp-coveralls');
 
 gulp.task('clean', function () {
 	return gulp.src(['./build/**/*.js'])
@@ -52,6 +53,11 @@ gulp.task('dev-coverage', ['test-coverage'], function () {
 
 gulp.task('dist', ['test-coverage'], function () {
 
+});
+
+gulp.task('ci', ['dist'], function() {
+	return gulp.src('test/coverage/**/lcov.info')
+			.pipe(coveralls());
 });
 
 
