@@ -92,7 +92,7 @@ var config = require('../../config/config.json');
 				appended_size[i] = 0;
 			}
 			else {
-				appended_size[i] = parseInt(bit_size[i - (32 - bit_size.length)]);
+				appended_size[i] = parseInt(bit_size[i - (32 - bit_size.length)], 10);
 			}
 		}
 

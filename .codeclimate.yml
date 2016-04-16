@@ -8,6 +8,11 @@ engines:
       - javascript
       - python
       - php
+    checks:
+      Similar code:
+        enabled: false
+      Identical code:
+        enabled: false
   eslint:
     enabled: true
   fixme:
