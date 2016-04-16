@@ -34,6 +34,7 @@ The `write` method returns a promise for an object with the writen id3 tags of t
  tags to add to the path. The optional `opts` parameter is an object with the following properties:
  
  - ```recursive```: Write recursively when the path parameter is a folder path. ( _Default: true_ )
+ - ```replace```: Removes any previously existing tag. ( _Default: false_ )
  
 For example:
  
