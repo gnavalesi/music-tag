@@ -4,8 +4,25 @@ var _ = require('underscore');
 var testsData = require('./test_data');
 var should = require('should');
 var fs = require('fs');
+var unzip = require('unzip');
+var rimraf = require('rimraf');
 
 describe('music-tag', function () {
+	before(function (done) {
+		rimraf(testsData.path + '/**/*', function (err) {
+			if (err) {
+				done(err);
+			} else {
+				fs.createReadStream('test/resources.zip')
+					.pipe(unzip.Extract({path: 'test'}))
+					.on('close', function () {
+						done();
+					});
+			}
+		});
+	});
+
+
 	beforeEach(function () {
 		fs.writeFile(testsData.files.bad_file.path, '');
 		fs.writeFile(testsData.files.another_file.path, '');
@@ -237,7 +254,9 @@ describe('music-tag', function () {
 					result[2].path.should.match(testsData.files.test02.regex);
 					result[2].data.should.deepEqual(_.extend(testsData.files.test02.data, {year: '2005'}));
 
-					musicTag.read(testsData.path).then(function (readResult) {
+					musicTag.read(testsData.path, {
+						recursive: false
+					}).then(function (readResult) {
 						readResult.should.be.Array();
 						readResult.length.should.be.equal(3);
 
@@ -256,8 +275,6 @@ describe('music-tag', function () {
 					}).catch(function (err) {
 						done(err);
 					});
-
-					done();
 				}).fail(function (err) {
 					done(err);
 				}).catch(function (err) {
@@ -273,7 +290,7 @@ describe('music-tag', function () {
 					result.length.should.be.equal(7);
 
 					result[0].path.should.match(testsData.files.bad_file.regex);
-					result[0].data.should.deepEqual(testsData.files.bad_file.data);
+					result[0].data.should.deepEqual({year: '1999'});
 
 					result[1].path.should.match(testsData.directories.directory01.files.test03.regex);
 					result[1].data.should.deepEqual(testsData.directories.directory01.files.test03.data);
@@ -288,17 +305,17 @@ describe('music-tag', function () {
 					result[4].data.should.deepEqual(testsData.directories.directory02.files.test06.data);
 
 					result[5].path.should.match(testsData.files.test01.regex);
-					result[5].data.should.deepEqual(testsData.files.test01.data);
+					result[5].data.should.deepEqual(_.extend(testsData.files.test01.data, {year: '1999'}));
 
 					result[6].path.should.match(testsData.files.test02.regex);
-					result[6].data.should.deepEqual(testsData.files.test02.data);
+					result[6].data.should.deepEqual(_.extend(testsData.files.test02.data, {year: '1999'}));
 
 					musicTag.read(testsData.path).then(function (readResult) {
 						readResult.should.be.Array();
-						readResult.length.should.be.equal(2);
+						readResult.length.should.be.equal(7);
 
 						readResult[0].path.should.match(testsData.files.bad_file.regex);
-						readResult[0].data.should.deepEqual(testsData.files.bad_file.data);
+						readResult[0].data.should.deepEqual({year: '1999'});
 
 						readResult[1].path.should.match(testsData.directories.directory01.files.test03.regex);
 						readResult[1].data.should.deepEqual(testsData.directories.directory01.files.test03.data);
@@ -324,8 +341,6 @@ describe('music-tag', function () {
 					}).catch(function (err) {
 						done(err);
 					});
-
-					done();
 				}).fail(function (err) {
 					done(err);
 				}).catch(function (err) {

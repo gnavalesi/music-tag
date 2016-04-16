@@ -24,25 +24,6 @@
 		return deferred.promise;
 	};
 
-	/*
-	var validatePath = function (options) {
-		var deferred = Q.defer();
-
-		fs.stat(options.path.path, function (err, stats) {
-			if (err) {
-				deferred.reject(new Error(err));
-			} else {
-				options.path.isDirectory = stats.isDirectory();
-				options.path.isFile = stats.isFile();
-
-				deferred.resolve(options);
-			}
-		});
-
-		return deferred.promise;
-	};
-	*/
-
 	var resolvePath = function (path) {
 		var deferred = Q.defer();
 
@@ -56,23 +37,6 @@
 
 		return deferred.promise;
 	};
-
-	/*
-	var resolvePath = function (options) {
-		var deferred = Q.defer();
-
-		fs.realpath(options.path.path, function (err, resolvedPath) {
-			if (err) {
-				deferred.reject(new Error(err));
-			} else {
-				options.path.fullPath = resolvedPath;
-				deferred.resolve(options);
-			}
-		});
-
-		return deferred.promise;
-	};
-	*/
 
 	var isMusicFile = function(path) {
 		var regex = /.+.(mp3|flac|wav)/i;

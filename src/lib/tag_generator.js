@@ -8,7 +8,7 @@
 
 	var generate = function (tags) {
 		var tagData = makeTags(tags);
-		var tagHeader = makeHeader(tagData.length - 10);
+		var tagHeader = makeHeader(tagData.length);
 
 		return Buffer.concat([tagHeader, tagData]);
 	};
@@ -38,7 +38,7 @@
 	var makeTags = function (tags) {
 		var frames = {},
 			labels = _.invert(config.labels),
-				total_size = 0;
+			total_size = 0;
 
 		_.each(_.keys(tags), function (it) {
 			var label = it.toLowerCase().replace(/_/g, ' ');
@@ -66,7 +66,7 @@
 		var tag_buffer = new Buffer(total_size + 10),
 			pos = 0;
 
-		tag_buffer.fill('');
+		tag_buffer.fill('\u0000');
 
 		_.each(_.keys(frames), function (t) {
 			if (t === 'TXXX') {
