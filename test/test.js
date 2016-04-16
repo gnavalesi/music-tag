@@ -1,5 +1,5 @@
 var assert = require('assert');
-var musicTag = require('../src');
+var musicTag = require('../');
 var _ = require('underscore');
 var testsData = require('./test_data');
 var should = require('should');
@@ -414,6 +414,10 @@ describe('music-tag', function () {
 			});
 
 			describe('errors', function () {
+				before(function (done) {
+					fs.chmod(testsData.directories.directory01.path, '000', done);
+				});
+
 				it('should return error when when writing to a non existing folder', function (done) {
 					musicTag.write(testsData.path + '/non_existent/', testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + result));
@@ -424,7 +428,19 @@ describe('music-tag', function () {
 					});
 				});
 
-				it('should return error when writing a folder with no permissions');
+				it('should return error when writing a folder with no permissions', function (done) {
+					musicTag.write(testsData.directories.directory01.path, testsData.files.test01.data).then(function (result) {
+						done(new Error('Value returned: ' + result));
+					}).fail(function () {
+						done();
+					}).catch(function (err) {
+						done(err);
+					});
+				});
+
+				after(function (done) {
+					fs.chmod(testsData.directories.directory01.path, '777', done);
+				});
 			});
 		});
 	});
