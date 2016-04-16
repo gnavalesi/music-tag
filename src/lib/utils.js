@@ -1,11 +1,11 @@
+var fs = require('fs');
+var Q = require('q');
+var _ = require('underscore');
+
 (function () {
 	'use strict';
 
-	var fs = require('fs');
-	var Q = require('q');
-	var _ = require('underscore');
-
-	var validatePath = function(path) {
+	var validatePath = function (path) {
 		var deferred = Q.defer();
 
 		fs.stat(path, function (err, stats) {
@@ -38,7 +38,7 @@
 		return deferred.promise;
 	};
 
-	var isMusicFile = function(path) {
+	var isMusicFile = function (path) {
 		var regex = /.+.(mp3|flac|wav)/i;
 		return path.toString().match(regex) !== null;
 	};
@@ -51,18 +51,18 @@
 				deferred.reject(new Error(err));
 			} else {
 				files = _.chain(files)
-						.map(_.partial(addPath, path))
-						.filter(function(file) {
-							return (getFolders && isDirectory(file)) || isMusicFile(file);
-						})
-						.map(function(fullPath) {
-							return validatePath(fullPath).then(function(pathData) {
-								if((pathData.isDirectory && getFolders) || pathData.isFile) {
-									return _.extend(pathData, {path: fullPath})
-								}
-							});
-						}).value();
-				Q.all(files).then(function(result) {
+					.map(_.partial(addPath, path))
+					.filter(function (file) {
+						return (getFolders && isDirectory(file)) || isMusicFile(file);
+					})
+					.map(function (fullPath) {
+						return validatePath(fullPath).then(function (pathData) {
+							if ((pathData.isDirectory && getFolders) || pathData.isFile) {
+								return _.extend(pathData, {path: fullPath})
+							}
+						});
+					}).value();
+				Q.all(files).then(function (result) {
 					deferred.resolve(result);
 				}).fail(deferred.reject);
 			}
@@ -89,4 +89,4 @@
 		isMusicFile: isMusicFile,
 		getFiles: getFiles
 	};
-})();
+}());

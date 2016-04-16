@@ -1,10 +1,11 @@
-(function () {
-	'use strict';
-
-	var _ = require('underscore'),
+var _ = require('underscore'),
 		fs = require('fs'),
 		Buffer = require('buffer').Buffer,
 		Q = require('q');
+
+
+(function () {
+	'use strict';
 
 	var read = function (path) {
 		var deferred = Q.defer();
@@ -105,4 +106,4 @@
 	module.exports = {
 		read: read
 	};
-})();
+}());

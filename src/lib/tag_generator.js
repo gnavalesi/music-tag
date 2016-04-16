@@ -1,10 +1,10 @@
+var _ = require('underscore'),
+	Buffer = require('buffer').Buffer;
+
+var config = require('../../config/config.json');
+
 (function () {
 	'use strict';
-
-	var _ = require('underscore'),
-		Buffer = require('buffer').Buffer;
-
-	var config = require('../../config/config.json');
 
 	var generate = function (tags) {
 		var tagData = makeTags(tags);
@@ -112,4 +112,4 @@
 	module.exports = {
 		generate: generate
 	};
-})();
+}());

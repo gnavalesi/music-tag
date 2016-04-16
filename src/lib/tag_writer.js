@@ -1,9 +1,10 @@
-(function () {
-	'use strict';
-
-	var fs = require('fs'),
+var fs = require('fs'),
 		Buffer = require('buffer').Buffer,
 		Q = require('q');
+
+
+(function () {
+	'use strict';
 
 	var write = function (path, tagBuffer, originalSize) {
 		var deferred = Q.defer();
@@ -49,4 +50,4 @@
 	module.exports = {
 		write: write
 	};
-})();
+}());
