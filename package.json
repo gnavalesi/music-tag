@@ -2,6 +2,13 @@
   "name": "music-tag",
   "version": "0.0.4",
   "description": "ID3 reader and writer for NodeJS",
+  "keywords": [
+    "id3",
+    "tags",
+    "mp3",
+    "flac",
+    "wav"
+  ],
   "homepage": "https://github.com/gnavalesi/music-tag",
   "repository": "https://github.com/gnavalesi/music-tag.git",
   "license": "ISC",
