@@ -3,6 +3,8 @@ var musicTag = require('../');
 var _ = require('underscore');
 var testsData = require('./test_data');
 var should = require('should');
+require('should-sinon');
+var sinon = require('sinon');
 var fs = require('fs');
 var unzip = require('unzip');
 var rimraf = require('rimraf');
@@ -26,23 +28,35 @@ describe('music-tag', function () {
 		describe('general', function () {
 			describe('errors', function () {
 				it('should return error when an invalid path argument is passed', function (done) {
-					musicTag.read(0).then(function () {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(0, options).then(function () {
 						assert(false);
 						done();
 					}).catch(function (err) {
 						err.should.be.Error();
 						err.message.should.equal('Invalid path argument: 0');
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});
 
 				it('should return error when an invalid options argument is passed', function (done) {
+					var options = {
+						each: sinon.spy()
+					};
+
 					musicTag.read(testsData.files.test01.path, 1).then(function () {
 						assert(false);
 						done();
 					}).catch(function (err) {
 						err.should.be.Error();
 						err.message.should.equal('Invalid options argument: 1');
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});
@@ -52,17 +66,29 @@ describe('music-tag', function () {
 		describe('file', function () {
 			describe('valid', function () {
 				it('should return a valid object when reading a valid file', function (done) {
-					musicTag.read(testsData.files.test01.path).then(function (result) {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.files.test01.path, options).then(function (result) {
 						result.path.should.match(testsData.files.test01.regex);
 						result.data.should.deepEqual(testsData.files.test01.data);
+						options.each.should.be.calledOnce();
+
 						done();
 					}).catch(done);
 				});
 
 				it('should return an empty result when reading no id3 tagged file', function (done) {
-					musicTag.read(testsData.files.bad_file.path).then(function (result) {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.files.bad_file.path, options).then(function (result) {
 						result.path.should.match(testsData.files.bad_file.regex);
 						result.data.should.deepEqual(testsData.files.bad_file.data);
+						options.each.should.be.calledOnce();
+
 						done();
 					}).catch(done);
 				});
@@ -74,25 +100,43 @@ describe('music-tag', function () {
 				});
 
 				it('should return error when reading a non existing file', function (done) {
-					musicTag.read(testsData.path + '/non_existent.mp3').then(function (result) {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.path + '/non_existent.mp3', options).then(function (result) {
 						done(new Error('Value returned: ' + result));
 					}).catch(function () {
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});
 
 				it('should return error when reading an invalid file', function (done) {
-					musicTag.read(testsData.files.another_file.path).then(function (result) {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.files.another_file.path, options).then(function (result) {
 						done(new Error('Value returned: ' + result));
 					}).catch(function () {
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});
 
 				it('should return error when reading a file with no permissions', function (done) {
-					musicTag.read(testsData.files.test02.path).then(function (result) {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.files.test02.path, options).then(function (result) {
 						done(new Error('Value returned: ' + result));
 					}).catch(function () {
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});
@@ -106,7 +150,11 @@ describe('music-tag', function () {
 		describe('folder', function () {
 			describe('valid', function () {
 				it('should return the right number of valid objects when reading a valid folder', function (done) {
-					musicTag.read(testsData.path).then(function (withoutSlashResult) {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.path, options).then(function (withoutSlashResult) {
 						withoutSlashResult.should.be.Array();
 						withoutSlashResult.length.should.be.equal(7);
 
@@ -131,8 +179,11 @@ describe('music-tag', function () {
 						withoutSlashResult[6].path.should.match(testsData.files.test02.regex);
 						withoutSlashResult[6].data.should.deepEqual(testsData.files.test02.data);
 
-						musicTag.read(testsData.path + '/').then(function (withSlashResult) {
+						options.each.should.have.callCount(7);
+
+						musicTag.read(testsData.path + '/', options).then(function (withSlashResult) {
 							withSlashResult.should.deepEqual(withoutSlashResult);
+
 							done();
 						}).catch(function (err) {
 							done(err);
@@ -141,9 +192,12 @@ describe('music-tag', function () {
 				});
 
 				it('should return the right number of valid objects when reading non recursive a valid folder', function (done) {
-					musicTag.read(testsData.path, {
+					var options = {
+						each: sinon.spy(),
 						recursive: false
-					}).then(function (withoutSlashResult) {
+					};
+
+					musicTag.read(testsData.path, options).then(function (withoutSlashResult) {
 						withoutSlashResult.should.be.Array();
 						withoutSlashResult.length.should.be.equal(3);
 
@@ -156,6 +210,8 @@ describe('music-tag', function () {
 						withoutSlashResult[2].path.should.match(testsData.files.test02.regex);
 						withoutSlashResult[2].data.should.deepEqual(testsData.files.test02.data);
 
+						options.each.should.have.callCount(3);
+
 						done();
 					}).catch(done);
 				});
@@ -167,21 +223,33 @@ describe('music-tag', function () {
 				});
 
 				it('should return error when reading a non existing folder', function (done) {
-					musicTag.read(testsData.path + '/non_existent').then(function () {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.path + '/non_existent', options).then(function () {
 						assert(false);
 						done();
 					}).catch(function (err) {
 						err.should.be.Error();
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});
 
 				it('should return error when reading a folder with no permissions', function (done) {
-					musicTag.read(testsData.directories.directory01.path).then(function () {
+					var options = {
+						each: sinon.spy()
+					};
+
+					musicTag.read(testsData.directories.directory01.path, options).then(function () {
 						assert(false);
 						done();
 					}).catch(function (err) {
 						err.should.be.Error();
+						options.each.should.have.callCount(0);
+
 						done();
 					});
 				});

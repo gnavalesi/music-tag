@@ -1,6 +1,7 @@
 # music-tag
 
-![](https://travis-ci.org/gnavalesi/music-tag.svg?branch=master) ![](https://coveralls.io/repos/github/gnavalesi/music-tag/badge.svg?branch=master)
+![](https://travis-ci.org/gnavalesi/music-tag.svg?branch=master)
+![](https://coveralls.io/repos/github/gnavalesi/music-tag/badge.svg?branch=master)
 ![](https://codeclimate.com/github/gnavalesi/music-tag/badges/gpa.svg)
 ![](https://www.versioneye.com/user/projects/5712a0ccfcd19a004544118e/badge.svg?style=flat)
 
@@ -16,6 +17,7 @@ The `read` method returns a promise for an object with the id3 tags of the path 
  following properties:
  
  - ```recursive```: Read recursively when the path parameter is a folder path. ( _Default: true_ )
+ - ```each```: A function to be called for each result ( _Default: null_ )
  
 For example:
  

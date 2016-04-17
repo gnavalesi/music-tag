@@ -10,7 +10,8 @@ var TagReader = require('./tag_reader'),
 	'use strict';
 
 	var defaultOptions = {
-		recursive: true
+		recursive: true,
+		each: null
 	};
 
 	var read = function (path, options) {
@@ -35,11 +36,11 @@ var TagReader = require('./tag_reader'),
 				var fullPath = results[1];
 
 				if (pathData.isFile && Utils.isMusicFile(fullPath)) {
-					readFile(fullPath).then(function (readResult) {
+					readFile(fullPath, options).then(function (readResult) {
 						deferred.resolve(readResult);
 					}).catch(deferred.reject);
 				} else if (pathData.isDirectory) {
-					readFolder(fullPath, options.recursive).then(function (readResults) {
+					readFolder(fullPath, options).then(function (readResults) {
 						deferred.resolve(readResults);
 					}).catch(deferred.reject);
 				} else {
@@ -51,14 +52,26 @@ var TagReader = require('./tag_reader'),
 		return deferred.promise;
 	};
 
-	var readFile = function (path) {
+	var readFile = function (path, options) {
 		var deferred = Q.defer();
 		TagReader.read(path).then(function (tag_buffer) {
 			var tags = TagExtractor.extract(tag_buffer);
-			deferred.resolve(ReadResult(path, tags));
+			var result = ReadResult(path, tags);
+
+			if(!_.isNull(options.each)) {
+				options.each(result);
+			}
+
+			deferred.resolve(result);
 		}).catch(function (err) {
 			if (err === 'NO_ID3') {
-				deferred.resolve(ReadResult(path, {}));
+				var result = ReadResult(path, {});
+
+				if(!_.isNull(options.each)) {
+					options.each(result);
+				}
+
+				deferred.resolve(result);
 			} else {
 				deferred.reject(new Error(err));
 			}
@@ -67,15 +80,15 @@ var TagReader = require('./tag_reader'),
 		return deferred.promise;
 	};
 
-	var readFolder = function (path, recursive) {
+	var readFolder = function (path, options) {
 		var deferred = Q.defer();
 
-		Utils.getFiles(path, recursive).then(function (files) {
+		Utils.getFiles(path, options.recursive).then(function (files) {
 			var promises = _.map(files, function (file) {
 				if (file.isFile) {
-					return readFile(file.path);
+					return readFile(file.path, options);
 				} else {
-					return readFolder(file.path, recursive);
+					return readFolder(file.path, options);
 				}
 			});
 			Q.all(promises).then(function (results) {

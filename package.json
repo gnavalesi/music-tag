@@ -33,6 +33,8 @@
     "jshint": "^2.9.1",
     "rimraf": "latest",
     "should": "latest",
+    "should-sinon": "0.0.5",
+    "sinon": "^1.17.3",
     "unzip": "latest"
   }
 }
