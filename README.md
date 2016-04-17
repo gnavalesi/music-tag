@@ -13,8 +13,8 @@ The `read` method returns a promise for an object with the id3 tags of the path 
  String with the path (relative or absolute) of a file or folder. The optional `opts` parameter is an object with the
  following properties:
  
- - ```recursive```: Read recursively when the path parameter is a folder path. ( _Default: true_ )
- - ```each```: A function to be called for each result ( _Default: null_ )
+ - ```recursive```: Read recursively when the path parameter is a folder path. ( _Boolean. Default: true_ )
+ - ```each```: A function to be called for each result ( _Function (tags). Default: null_ )
  
 For example:
  
@@ -34,8 +34,9 @@ The `write` method returns a promise for an object with the writen id3 tags of t
  is a String with the path (relative or absolute) of a file or folder. The `tags` parameter is an object with the new 
  tags to add to the path. The optional `opts` parameter is an object with the following properties:
  
- - ```recursive```: Write recursively when the path parameter is a folder path. ( _Default: true_ )
- - ```replace```: Removes any previously existing tag. ( _Default: false_ )
+ - ```recursive```: Write recursively when the path parameter is a folder path. ( _Boolean. Default: true_ )
+ - ```each```: A function to be called for each result ( _Function (tags). Default: null_ )
+ - ```replace```: Removes any previously existing tag. ( _Boolean. Default: false_ )
  
 For example:
  

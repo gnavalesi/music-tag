@@ -14,7 +14,8 @@ var TagGenerator = require('./tag_generator');
 
 	var defaultOptions = {
 		recursive: true,
-		replace: false
+		replace: false,
+		each: null
 	};
 
 	var write = function (path, tags, options) {
@@ -85,7 +86,11 @@ var TagGenerator = require('./tag_generator');
 			var tagBuffer = TagGenerator.generate(readResult.tags);
 
 			TagWriter.write(path, tagBuffer, readResult.originalSize).then(function () {
-				deferred.resolve(WriteResult(path, readResult.tags));
+				var writeResult = WriteResult(path, readResult.tags);
+				if(!_.isNull(options.each)) {
+					options.each(writeResult);
+				}
+				deferred.resolve(writeResult);
 			}).catch(deferred.reject);
 		}).catch(deferred.reject);
 
