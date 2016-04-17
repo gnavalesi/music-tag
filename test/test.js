@@ -9,20 +9,22 @@ var fs = require('fs');
 var unzip = require('unzip');
 var rimraf = require('rimraf');
 
-describe('music-tag', function () {
-	before(function (done) {
-		rimraf(testsData.path + '/**/*', function (err) {
-			if (err) {
-				done(err);
-			} else {
-				fs.createReadStream('test/resources.zip')
-					.pipe(unzip.Extract({path: 'test'}))
-					.on('close', function () {
-						done();
-					});
-			}
-		});
+var renewResources = function (done) {
+	rimraf(testsData.path + '/**/*', function (err) {
+		if (err) {
+			done(err);
+		} else {
+			fs.createReadStream('test/resources.zip')
+				.pipe(unzip.Extract({path: 'test'}))
+				.on('close', function () {
+					done();
+				});
+		}
 	});
+};
+
+describe('music-tag', function () {
+	before(renewResources);
 
 	describe('read', function () {
 		describe('general', function () {
@@ -297,6 +299,7 @@ describe('music-tag', function () {
 		});
 
 		describe('file', function () {
+
 			describe('valid', function () {
 				it('should save correctly the tags when writing to a non id3 tagged file', function (done) {
 					musicTag.write(testsData.files.bad_file.path, testsData.files.test01.data).then(function (result) {
@@ -325,10 +328,26 @@ describe('music-tag', function () {
 				it('should save correctly custom tags when writing to a valid file', function (done) {
 					musicTag.write(testsData.files.test02.path, {custom: 'a value'}).then(function (result) {
 						result.path.should.match(testsData.files.test02.regex);
-						result.data.should.deepEqual(_.extend(testsData.files.test02.data, {custom: 'a value'}));
+						result.data.should.deepEqual(_.extend(_.clone(testsData.files.test02.data), {custom: 'a value'}));
 
 						musicTag.read(testsData.files.test02.path).then(function (readResult) {
-							readResult.data.should.deepEqual(_.extend(testsData.files.test02.data, {custom: 'a value'}));
+							readResult.data.should.deepEqual(_.extend(_.clone(testsData.files.test02.data), {custom: 'a value'}));
+							done();
+						}).catch(done);
+					}).catch(done);
+				});
+
+				it('should save and return correctly tags when replacing tags to a valid file', function (done) {
+					var options = {
+						replace: true
+					};
+
+					musicTag.write(testsData.files.bad_file.path, {custom: 'a value'}, options).then(function (result) {
+						result.path.should.match(testsData.files.bad_file.regex);
+						result.data.should.deepEqual({custom: 'a value'});
+
+						musicTag.read(testsData.files.bad_file.path).then(function (readResult) {
+							readResult.data.should.deepEqual({custom: 'a value'});
 							done();
 						}).catch(done);
 					}).catch(done);
@@ -343,7 +362,7 @@ describe('music-tag', function () {
 				it('should return error when writing to a non existing file', function (done) {
 					musicTag.write(testsData.path + '/non_existent.mp3', testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + result));
-					}).catch(function() {
+					}).catch(function () {
 						done();
 					});
 				});
@@ -351,7 +370,7 @@ describe('music-tag', function () {
 				it('should return error when writing to an invalid file', function (done) {
 					musicTag.write(testsData.files.another_file, testsData.files.test01.data).then(function (result) {
 						done(new Error('Value returned: ' + _.pairs(result)));
-					}).catch(function() {
+					}).catch(function () {
 						done();
 					});
 				});
@@ -359,7 +378,7 @@ describe('music-tag', function () {
 				it('should return error when writing a file with no permissions', function (done) {
 					musicTag.write(testsData.files.test01.path, testsData.files.test02.data).then(function (result) {
 						done(new Error('Value returned: ' + _.pairs(result)));
-					}).catch(function() {
+					}).catch(function () {
 						done();
 					});
 				});
@@ -371,6 +390,8 @@ describe('music-tag', function () {
 		});
 
 		describe('folder', function () {
+			before(renewResources);
+
 			describe('valid', function () {
 				it('should save correctly the tags when writing non recursive to a valid folder', function (done) {
 					musicTag.write(testsData.path, {
