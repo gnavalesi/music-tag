@@ -1,6 +1,6 @@
 {
   "name": "music-tag",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "ID3 reader and writer for NodeJS",
   "keywords": [
     "id3",
