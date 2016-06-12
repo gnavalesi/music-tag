@@ -21,7 +21,7 @@ For example:
 var id3 = require('music-tag');
 
 id3.read('music.mp3').then(function(result) {
-	console.log(result.tags);
+	console.log(result.data);
 }).fail(function(err) {
 	throw err;
 });
