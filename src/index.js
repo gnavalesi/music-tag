@@ -1,5 +1,5 @@
 var reader = require('./lib/reader');
-var writer = require('./lib/mp3/writer');
+var writer = require('./lib/writer');
 
 (function () {
 	'use strict';
@@ -9,3 +9,4 @@ var writer = require('./lib/mp3/writer');
 		write: writer.write
 	};
 }());
+

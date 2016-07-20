@@ -1,13 +1,16 @@
 var Q = require('q'),
 	fs = require('fs'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	readChunk = require('read-chunk'),
+	isFlac = require('is-flac'),
+	isMp3 = require('is-mp3'),
+	isM4a = require('is-m4a'),
+	isWav = require('is-wav'),
+	isOgg = require('is-ogg');
 
 var Utils = require('./utils');
 
-var TagReader = require('./tag_reader');
-var TagExtractor = require('./tag_extractor');
-var TagWriter = require('./tag_writer');
-var TagGenerator = require('./tag_generator');
+var mp3 = require('./mp3');
 
 (function () {
 	'use strict';
@@ -41,7 +44,7 @@ var TagGenerator = require('./tag_generator');
 				var pathData = results[0];
 				var fullPath = results[1];
 
-				if (pathData.isFile() && Utils.isMusicFile(fullPath)) {
+				if (pathData.isFile()) {
 					writeFile(fullPath, tags, options).then(function (writeResult) {
 						deferred.resolve(writeResult);
 					}).catch(deferred.reject);
@@ -59,42 +62,15 @@ var TagGenerator = require('./tag_generator');
 	};
 
 	var writeFile = function (path, tags, options) {
-		var deferred = Q.defer();
+		var buffer = readChunk.sync(path, 0, 12);
 
-		var readDeferred = Q.defer();
-
-		TagReader.read(path).then(function (buffer) {
-			if (!options.replace) {
-				tags = _.extend(TagExtractor.extract(buffer), tags);
-			}
-			readDeferred.resolve({
-				tags: tags,
-				originalSize: buffer.length
-			});
-		}).catch(function (err) {
-			if (err === 'NO_ID3') {
-				readDeferred.resolve({
-					tags: tags,
-					originalSize: 0
-				});
-			} else {
-				readDeferred.reject(err);
-			}
-		});
-
-		readDeferred.promise.then(function (readResult) {
-			var tagBuffer = TagGenerator.generate(readResult.tags);
-
-			TagWriter.write(path, tagBuffer, readResult.originalSize).then(function () {
-				var writeResult = WriteResult(path, readResult.tags);
-				if(!_.isNull(options.each)) {
-					options.each(writeResult);
-				}
-				deferred.resolve(writeResult);
-			}).catch(deferred.reject);
-		}).catch(deferred.reject);
-
-		return deferred.promise;
+		if(isMp3(buffer)) {
+			return mp3.write(path, tags, options);
+		} else {
+			var deferred = Q.defer();
+			deferred.reject(new Error('non mp3'));
+			return deferred.promise;
+		}
 	};
 
 	var writeFolder = function (path, tags, options) {
@@ -114,13 +90,6 @@ var TagGenerator = require('./tag_generator');
 		}).catch(deferred.reject);
 
 		return deferred.promise;
-	};
-
-	var WriteResult = function (path, data) {
-		return {
-			path: path,
-			data: data
-		};
 	};
 
 	module.exports = {

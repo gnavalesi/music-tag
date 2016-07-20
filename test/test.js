@@ -231,7 +231,6 @@ describe('music-tag', function () {
 
 	describe('write', function () {
 		beforeEach(function () {
-			fs.writeFile(testsData.files.bad_file.path, '');
 			fs.writeFile(testsData.files.another_file.path, '');
 		});
 
