@@ -1,10 +1,17 @@
 var fs = require('fs'),
 	_ = require('underscore'),
-	Q = require('q');
+	Q = require('q'),
+	readChunk = require('read-chunk'),
+	isFlac = require('is-flac'),
+	isMp3 = require('is-mp3'),
+	isM4a = require('is-m4a'),
+	isWav = require('is-wav'),
+	isOgg = require('is-ogg');
 
-var TagReader = require('./tag_reader'),
-	TagExtractor = require('./tag_extractor'),
-	Utils = require('./utils');
+var mp3 = require('./mp3');
+
+
+var Utils = require('./utils');
 
 (function () {
 	'use strict';
@@ -35,11 +42,11 @@ var TagReader = require('./tag_reader'),
 				var pathData = results[0];
 				var fullPath = results[1];
 
-				if (pathData.isFile && Utils.isMusicFile(fullPath)) {
+				if (pathData.isFile()) {
 					readFile(fullPath, options).then(function (readResult) {
 						deferred.resolve(readResult);
 					}).catch(deferred.reject);
-				} else if (pathData.isDirectory) {
+				} else if (pathData.isDirectory()) {
 					readFolder(fullPath, options).then(function (readResults) {
 						deferred.resolve(readResults);
 					}).catch(deferred.reject);
@@ -53,31 +60,15 @@ var TagReader = require('./tag_reader'),
 	};
 
 	var readFile = function (path, options) {
-		var deferred = Q.defer();
-		TagReader.read(path).then(function (tag_buffer) {
-			var tags = TagExtractor.extract(tag_buffer);
-			var result = ReadResult(path, tags);
+		var buffer = readChunk.sync(path, 0, 12);
 
-			if(!_.isNull(options.each)) {
-				options.each(result);
-			}
-
-			deferred.resolve(result);
-		}).catch(function (err) {
-			if (err === 'NO_ID3') {
-				var result = ReadResult(path, {});
-
-				if(!_.isNull(options.each)) {
-					options.each(result);
-				}
-
-				deferred.resolve(result);
-			} else {
-				deferred.reject(new Error(err));
-			}
-		});
-
-		return deferred.promise;
+		if(isMp3(buffer)) {
+			return mp3.read(path, options);
+		} else {
+			var deferred = Q.defer();
+			deferred.reject(new Error('non mp3'));
+			return deferred.promise;
+		}
 	};
 
 	var readFolder = function (path, options) {
@@ -85,7 +76,7 @@ var TagReader = require('./tag_reader'),
 
 		Utils.getFiles(path, options.recursive).then(function (files) {
 			var promises = _.map(files, function (file) {
-				if (file.isFile) {
+				if (file.isFile()) {
 					return readFile(file.path, options);
 				} else {
 					return readFolder(file.path, options);
@@ -97,13 +88,6 @@ var TagReader = require('./tag_reader'),
 		}).catch(deferred.reject);
 
 		return deferred.promise;
-	};
-
-	var ReadResult = function (path, data) {
-		return {
-			path: path,
-			data: data
-		};
 	};
 
 	module.exports = {

@@ -1,6 +1,7 @@
 var fs = require('fs');
 var Q = require('q');
 var _ = require('underscore');
+var util = require('util');
 
 (function () {
 	'use strict';
@@ -12,12 +13,7 @@ var _ = require('underscore');
 			if (err) {
 				deferred.reject(err);
 			} else {
-				var data = {
-					isDirectory: stats.isDirectory(),
-					isFile: stats.isFile()
-				};
-
-				deferred.resolve(data);
+				deferred.resolve(stats);
 			}
 		});
 
@@ -57,7 +53,7 @@ var _ = require('underscore');
 					})
 					.map(function (fullPath) {
 						return validatePath(fullPath).then(function (pathData) {
-							if ((pathData.isDirectory && getFolders) || pathData.isFile) {
+							if ((pathData.isDirectory() && getFolders) || pathData.isFile()) {
 								return _.extend(pathData, {path: fullPath});
 							}
 						});

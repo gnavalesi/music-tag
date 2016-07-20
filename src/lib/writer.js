@@ -41,11 +41,11 @@ var TagGenerator = require('./tag_generator');
 				var pathData = results[0];
 				var fullPath = results[1];
 
-				if (pathData.isFile && Utils.isMusicFile(fullPath)) {
+				if (pathData.isFile() && Utils.isMusicFile(fullPath)) {
 					writeFile(fullPath, tags, options).then(function (writeResult) {
 						deferred.resolve(writeResult);
 					}).catch(deferred.reject);
-				} else if (pathData.isDirectory) {
+				} else if (pathData.isDirectory()) {
 					writeFolder(fullPath, tags, options).then(function (writeResults) {
 						deferred.resolve(writeResults);
 					}).catch(deferred.reject);
@@ -102,7 +102,7 @@ var TagGenerator = require('./tag_generator');
 
 		Utils.getFiles(path, options.recursive).then(function (files) {
 			var promises = _.map(files, function (file) {
-				if (file.isFile) {
+				if (file.isFile()) {
 					return writeFile(file.path, tags, options);
 				} else {
 					return writeFolder(file.path, tags, options);

@@ -20,10 +20,17 @@
   },
   "dependencies": {
     "buffer": "^4.5.1",
+    "is-flac": "^1.1.2",
+    "is-m4a": "^1.0.2",
+    "is-mp3": "^1.1.2",
+    "is-ogg": "^1.1.2",
+    "is-wav": "^1.1.2",
     "q": "^2.0.3",
+    "read-chunk": "^2.0.0",
     "underscore": "latest"
   },
   "devDependencies": {
+    "expect": "^1.20.2",
     "gulp": "latest",
     "gulp-clean": "latest",
     "gulp-istanbul": "latest",
