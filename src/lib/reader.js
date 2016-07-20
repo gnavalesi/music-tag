@@ -8,7 +8,8 @@ var fs = require('fs'),
 	isWav = require('is-wav'),
 	isOgg = require('is-ogg');
 
-var mp3 = require('./mp3');
+var mp3 = require('./mp3'),
+	flac = require('./flac');
 
 
 var Utils = require('./utils');
@@ -64,6 +65,8 @@ var Utils = require('./utils');
 
 		if(isMp3(buffer)) {
 			return mp3.read(path, options);
+		} else if(isFlac(buffer)) {
+			return flac.read(path, options);
 		} else {
 			var deferred = Q.defer();
 			deferred.reject(new Error('non mp3'));

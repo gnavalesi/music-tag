@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "buffer": "^4.5.1",
+    "flac-metadata": "^0.1.1",
     "is-flac": "^1.1.2",
     "is-m4a": "^1.0.2",
     "is-mp3": "^1.1.2",
