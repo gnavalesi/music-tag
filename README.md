@@ -1,6 +1,6 @@
 # music-tag
 
-[![Build Status](https://travis-ci.org/gnavalesi/music-tag.svg?branch=master)](https://travis-ci.org/gnavalesi/music-tag) [![Coverage Status](https://coveralls.io/repos/github/gnavalesi/music-tag/badge.svg?branch=master)](https://coveralls.io/github/gnavalesi/music-tag?branch=master) [![Code Climate](https://codeclimate.com/github/gnavalesi/music-tag/badges/gpa.svg)](https://codeclimate.com/github/gnavalesi/music-tag) [![Dependency Status](https://www.versioneye.com/user/projects/5712a0ccfcd19a004544118e/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5712a0ccfcd19a004544118e)
+[![Build Status](https://travis-ci.org/gnavalesi/music-tag.svg?branch=master)](https://travis-ci.org/gnavalesi/music-tag) [![Test Coverage](https://codeclimate.com/github/gnavalesi/music-tag/badges/coverage.svg)](https://codeclimate.com/github/gnavalesi/music-tag/coverage) [![Code Climate](https://codeclimate.com/github/gnavalesi/music-tag/badges/gpa.svg)](https://codeclimate.com/github/gnavalesi/music-tag) [![Dependency Status](https://www.versioneye.com/user/projects/5712a0ccfcd19a004544118e/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5712a0ccfcd19a004544118e)
 
 ID3 reader and writer for NodeJS
 

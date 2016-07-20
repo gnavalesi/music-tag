@@ -26,7 +26,6 @@
   "devDependencies": {
     "gulp": "latest",
     "gulp-clean": "latest",
-    "gulp-coveralls": "latest",
     "gulp-istanbul": "latest",
     "gulp-jshint": "latest",
     "gulp-mocha": "latest",
