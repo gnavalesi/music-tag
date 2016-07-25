@@ -5,9 +5,7 @@
   "keywords": [
     "id3",
     "tags",
-    "mp3",
-    "flac",
-    "wav"
+    "mp3"
   ],
   "homepage": "https://github.com/gnavalesi/music-tag",
   "repository": "https://github.com/gnavalesi/music-tag.git",
