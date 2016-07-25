@@ -11,6 +11,7 @@ var Q = require('q'),
 var Utils = require('./utils');
 
 var mp3 = require('./mp3');
+var flac = require('./flac');
 
 (function () {
 	'use strict';
@@ -66,6 +67,8 @@ var mp3 = require('./mp3');
 
 		if(isMp3(buffer)) {
 			return mp3.write(path, tags, options);
+		} else if(isFlac(buffer)) {
+			return flac.write(path, tags, options);
 		} else {
 			var deferred = Q.defer();
 			deferred.reject(new Error('non mp3'));

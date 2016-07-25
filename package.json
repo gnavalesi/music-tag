@@ -26,6 +26,7 @@
     "is-mp3": "^1.1.2",
     "is-ogg": "^1.1.2",
     "is-wav": "^1.1.2",
+    "musicmetadata": "^2.0.4",
     "q": "^2.0.3",
     "read-chunk": "^2.0.0",
     "underscore": "latest"

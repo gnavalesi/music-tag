@@ -1,6 +1,7 @@
 var Q = require('q'),
 	fs = require('fs'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	flac = require('flac-metadata');
 
 var Utils = require('./../utils');
 
@@ -16,99 +17,49 @@ var Utils = require('./../utils');
 	var write = function (path, tags, options) {
 		var deferred = Q.defer();
 
-		var validParameters = false;
-		if (!_.isString(path)) {
-			deferred.reject(new Error('Invalid path argument: ' + path));
-		} else if (!_.isObject(tags)) {
-			deferred.reject(new Error('Invalid tags argument: ' + tags));
-		} else {
-			var validatedOptions = Utils.validateOptions(options, defaultOptions);
-			if (_.isNull(validatedOptions)) {
-				deferred.reject(new Error('Invalid options argument: ' + options));
-			} else {
-				options = validatedOptions;
-				validParameters = true;
+		var reader = fs.createReadStream(path);
+		var writer = fs.createWriteStream(path + 'a');
+		var processor = new flac.Processor();
+
+
+		var vendor = 'reference libFLAC 1.2.1 20070917';
+		var comments = generateTags(tags);
+		var mdbVorbis = flac.data.MetaDataBlockVorbisComment.create(true, vendor, comments);
+
+		processor.on('preprocess', function(mdb) {
+			// Remove existing VORBIS_COMMENT block, if any
+			if(mdb.type === flac.Processor.MDB_TYPE_VORBIS_COMMENT) {
+				mdb.remove();
+
 			}
-		}
 
-		if (validParameters) {
-			Q.all([Utils.validatePath(path), Utils.resolvePath(path)]).then(function (results) {
-				var pathData = results[0];
-				var fullPath = results[1];
+			// Prepare to add new VORBIS_COMMENT block as last metadata block
+			if(mdb.isLast) {
+				mdb.isLast = false;
 
-				if (pathData.isFile() && Utils.isMusicFile(fullPath)) {
-					writeFile(fullPath, tags, options).then(function (writeResult) {
-						deferred.resolve(writeResult);
-					}).catch(deferred.reject);
-				} else if (pathData.isDirectory()) {
-					writeFolder(fullPath, tags, options).then(function (writeResults) {
-						deferred.resolve(writeResults);
-					}).catch(deferred.reject);
-				} else {
-					deferred.reject(new Error('Invalid path argument: ' + fullPath));
-				}
-			}).catch(deferred.reject);
-		}
-
-		return deferred.promise;
-	};
-
-	var writeFile = function (path, tags, options) {
-		var deferred = Q.defer();
-
-		var readDeferred = Q.defer();
-
-		TagReader.read(path).then(function (buffer) {
-			if (!options.replace) {
-				tags = _.extend(TagExtractor.extract(buffer), tags);
-			}
-			readDeferred.resolve({
-				tags: tags,
-				originalSize: buffer.length
-			});
-		}).catch(function (err) {
-			if (err === 'NO_ID3') {
-				readDeferred.resolve({
-					tags: tags,
-					originalSize: 0
-				});
-			} else {
-				readDeferred.reject(err);
 			}
 		});
 
-		readDeferred.promise.then(function (readResult) {
-			var tagBuffer = TagGenerator.generate(readResult.tags);
+		processor.on('postprocess', function(mdb) {
+			if(mdbVorbis) {
+				// Add new VORBIS_COMMENT block as last metadata block
+				this.push(mdbVorbis.publish());
+			}
+		});
 
-			TagWriter.write(path, tagBuffer, readResult.originalSize).then(function () {
-				var writeResult = WriteResult(path, readResult.tags);
-				if(!_.isNull(options.each)) {
-					options.each(writeResult);
-				}
-				deferred.resolve(writeResult);
-			}).catch(deferred.reject);
-		}).catch(deferred.reject);
+		reader.pipe(processor).pipe(writer).end(function() {
+			var result = new WriteResult(path, tags);
+			deferred.resolve(result);
+		});
 
 		return deferred.promise;
 	};
 
-	var writeFolder = function (path, tags, options) {
-		var deferred = Q.defer();
-
-		Utils.getFiles(path, options.recursive).then(function (files) {
-			var promises = _.map(files, function (file) {
-				if (file.isFile()) {
-					return writeFile(file.path, tags, options);
-				} else {
-					return writeFolder(file.path, tags, options);
-				}
-			});
-			Q.all(promises).then(function (results) {
-				deferred.resolve(_.flatten(results));
-			}).catch(deferred.reject);
-		}).catch(deferred.reject);
-
-		return deferred.promise;
+	var generateTags = function(tags) {
+		return _.reduce(tags, function(acc, value, key) {
+			acc.push(key.toUpperCase() + '=' + value);
+			return acc;
+		}, []);
 	};
 
 	var WriteResult = function (path, data) {
